@@ -165,12 +165,18 @@
                     </div>
                     <div>
                         <label class="text-xs dark:text-white-dark mb-1 block">Logo Image URL</label>
-                        <input type="text" x-model="logo.image" class="form-input text-xs" @change="saveLogoConfig('image', logo.image)" placeholder="/assets/images/logo.svg">
+                        <input type="text" x-model="logo.image" class="form-input text-xs" @change="saveLogoConfig('image', logo.image)" placeholder="cuatropuntocero_logo.png">
                     </div>
                     <div class="text-primary">
                         <label class="inline-flex mb-0 items-center">
                             <input x-model="logo.show_image" type="checkbox" class="form-checkbox" @change="saveLogoConfig('show_image', logo.show_image)" />
                             <span class="text-xs">Show Logo Image</span>
+                        </label>
+                    </div>
+                    <div class="text-primary">
+                        <label class="inline-flex mb-0 items-center">
+                            <input x-model="logo.show_text" type="checkbox" class="form-checkbox" @change="saveLogoConfig('show_text', logo.show_text)" />
+                            <span class="text-xs">Show Logo Name</span>
                         </label>
                     </div>
                 </div>
@@ -254,6 +260,16 @@
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' },
                     body: JSON.stringify(data)
                 }).catch(err => console.warn('Logo save failed:', err));
+                this.applyLogoVisibility();
+            },
+
+            applyLogoVisibility() {
+                document.querySelectorAll('[data-theme-logo-image]').forEach((el) => {
+                    el.style.display = this.logo.show_image ? '' : 'none';
+                });
+                document.querySelectorAll('[data-theme-logo-text]').forEach((el) => {
+                    el.style.display = this.logo.show_text ? '' : 'none';
+                });
             }
         }));
     });

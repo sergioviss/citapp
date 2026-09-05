@@ -4,13 +4,13 @@
 # Se commitea a git para que la configuración viaje con el proyecto.
 # =============================================================================
 theme:
-  preset: lemonade
+  preset: default
   custom_colors:
-    primary: "#519903"
-    secondary: "#e9e92f"
-    success: "#519903"
+    primary: "#4361ee"
+    secondary: "#805dca"
+    success: "#00ab55"
     danger: "#e7515a"
-    warning: "#e9e92f"
+    warning: "#e2a03f"
     info: "#2196f3"
 layout:
   scheme: light
@@ -22,5 +22,6 @@ layout:
   semidark: true
 logo:
   text: Template Base
-  image: "/assets/images/cuatropuntocero_logo_icon.PNG"
-  show_image: true
+  image: cuatropuntocero_logo.png
+  show_image: false
+  show_text: true

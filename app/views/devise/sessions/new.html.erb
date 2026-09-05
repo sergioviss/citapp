@@ -3,14 +3,14 @@
 <%= render "devise/shared/auth_shell", title: "Bienvenido", subtitle: "Ingresa tu correo y contraseña para continuar" do %>
     <%= form_for(resource, as: resource_name, url: session_path(resource_name), class: "mt-8 dark:text-white") do |f| %>
         <div>
-            <label for="user_email" class="font-semibold" style="color:#3B5BA5">Correo electrónico</label>
+            <label for="user_email" class="auth-label font-semibold">Correo electrónico</label>
             <div class="relative text-white-dark">
                 <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input ps-10 placeholder:text-white-dark", placeholder: "Ingresa tu correo" %>
                 <%= render "devise/shared/email_icon" %>
             </div>
         </div>
         <div style="margin-top: 1.15rem;">
-            <label for="user_password" class="font-semibold" style="color:#3B5BA5">Contraseña</label>
+            <label for="user_password" class="auth-label font-semibold">Contraseña</label>
             <div class="relative text-white-dark">
                 <%= f.password_field :password, autocomplete: "current-password", placeholder: "Ingresa tu contraseña", class: "form-input ps-10 placeholder:text-white-dark" %>
                 <%= render "devise/shared/password_icon" %>
@@ -26,7 +26,7 @@
         </div>
         <% end %>
 
-        <button type="submit" class="!mt-6 w-full rounded-md border-0 py-3 text-sm font-bold uppercase tracking-widest text-white transition-all duration-300 hover:opacity-90 hover:shadow-lg" style="background: linear-gradient(135deg, #2A4590 0%, #3B5BA5 100%); box-shadow: 0 10px 20px -10px rgba(59,91,165,0.6)">
+        <button type="submit" class="auth-submit !mt-6 w-full rounded-md border-0 py-3 text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:opacity-90 hover:shadow-lg">
             Iniciar Sesión
         </button>
     <% end %>

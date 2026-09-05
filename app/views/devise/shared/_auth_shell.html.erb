@@ -2,24 +2,51 @@
     @media (max-width: 639px) {
         #login-wrap { padding: 0 !important; }
     }
+    .auth-page-bg {
+        background: linear-gradient(135deg,
+            color-mix(in srgb, var(--color-primary) 18%, #ffffff) 0%,
+            color-mix(in srgb, var(--color-primary) 38%, #ffffff) 50%,
+            color-mix(in srgb, var(--color-primary) 56%, #ffffff) 100%);
+    }
+    #cursor-glow {
+        background: radial-gradient(circle,
+            rgba(var(--color-primary-rgb), 0.55) 0%,
+            rgba(var(--color-primary-rgb), 0.22) 45%,
+            rgba(var(--color-primary-rgb), 0) 72%);
+    }
+    .auth-card {
+        box-shadow: 0 20px 60px -15px rgba(var(--color-primary-rgb), 0.35);
+    }
+    .auth-brand,
+    .auth-title,
+    .auth-label,
+    .auth-link {
+        color: var(--color-primary);
+    }
+    .auth-submit {
+        background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 82%, #000000) 0%, var(--color-primary) 100%);
+        color: var(--auth-on-primary);
+        box-shadow: 0 10px 20px -10px rgba(var(--color-primary-rgb), 0.6);
+    }
 </style>
 <div class="relative min-h-screen overflow-hidden text-black dark:text-white-dark">
-    <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, #cfe3ff 0%, #a7c8fb 50%, #7fb0f7 100%);"></div>
+    <div class="auth-page-bg absolute inset-0 z-0"></div>
     <img src="/assets/images/map.svg" alt="" class="absolute inset-0 z-[1] h-full w-full object-cover opacity-30 mix-blend-multiply" />
 
     <div id="cursor-glow"
          class="pointer-events-none absolute left-0 top-0 rounded-full"
-         style="width: 760px; height: 760px; z-index: 2; opacity: 0.7; filter: blur(90px); background: radial-gradient(circle, rgba(91,140,235,0.55) 0%, rgba(91,140,235,0.22) 45%, rgba(91,140,235,0) 72%); transform: translate3d(-50%, -50%, 0); will-change: transform;"></div>
+         style="width: 760px; height: 760px; z-index: 2; opacity: 0.7; filter: blur(90px); transform: translate3d(-50%, -50%, 0); will-change: transform;"></div>
 
     <div id="login-wrap" class="relative z-10 flex min-h-screen items-center justify-center px-6 py-10">
-        <div class="border border-slate-100 bg-white px-7 py-10 dark:border-white/10 dark:bg-black/50 sm:px-10" style="width: 90%; max-width: 576px; border-radius: 32px; box-shadow: 0 20px 60px -15px rgba(59,91,165,0.35);">
+        <div class="auth-card border border-slate-100 bg-white px-7 py-10 dark:border-white/10 dark:bg-black/50 sm:px-10" style="width: 90%; max-width: 576px; border-radius: 32px;">
             <div class="flex flex-col items-center text-center">
                 <% if theme_logo_image_src %>
-                    <img src="<%= theme_logo_image_src %>" alt="" class="max-w-full" style="width: 8rem; margin-bottom: 0.75rem;" />
-                <% elsif theme_logo_text %>
-                    <p class="text-lg font-extrabold tracking-wide" style="color:#3B5BA5; margin-bottom: 0.35rem;"><%= theme_logo_text %></p>
+                    <img src="<%= theme_logo_image_src %>" alt="" class="max-w-full" style="width: 14rem; margin-bottom: 0.75rem;" />
                 <% end %>
-                <h1 class="text-3xl font-extrabold uppercase !leading-snug md:text-4xl" style="color:#3B5BA5"><%= title %></h1>
+                <% if theme_logo_text %>
+                    <p class="auth-brand text-lg font-extrabold tracking-wide" style="margin-bottom: 0.35rem;"><%= theme_logo_text %></p>
+                <% end %>
+                <h1 class="auth-title text-3xl font-extrabold uppercase !leading-snug md:text-4xl"><%= title %></h1>
                 <% if local_assigns[:subtitle].present? %>
                     <p class="font-medium leading-normal text-white-dark" style="margin-top: 0; margin-bottom: 1.25rem; font-size: 0.8rem;"><%= subtitle %></p>
                 <% end %>

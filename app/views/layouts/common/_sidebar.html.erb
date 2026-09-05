@@ -4,10 +4,10 @@
             <div class="flex justify-between items-center px-4 py-3">
                 <% logo_config = theme_layout_config[:logo] %>
                 <a href="/" class="main-logo flex items-center shrink-0">
-                    <% if logo_config[:show_image] %>
-                        <img class="w-8 ml-[5px] flex-none" src="<%= logo_config[:image] %>" alt="logo" />
+                    <% if (logo_src = resolve_theme_logo_path).present? %>
+                        <img data-theme-logo-image class="h-8 w-auto max-w-[160px] ml-[5px] flex-none object-contain" src="<%= logo_src %>" alt="logo"<%= " style=\"display:none\"".html_safe unless logo_config[:show_image] %> />
                     <% end %>
-                    <span class="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle lg:inline dark:text-white-light">
+                    <span data-theme-logo-text class="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle lg:inline dark:text-white-light"<%= " style=\"display:none\"".html_safe unless logo_config[:show_text] %>>
                         <%= logo_config[:text] %>
                     </span>
                 </a>

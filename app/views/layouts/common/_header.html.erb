@@ -4,10 +4,10 @@
             <div class="horizontal-logo flex lg:hidden justify-between items-center ltr:mr-2 rtl:ml-2">
                 <% logo_config = theme_layout_config[:logo] %>
                 <a href="/" class="main-logo flex items-center shrink-0">
-                    <% if logo_config[:show_image] %>
-                        <img class="w-8 ltr:-ml-1 rtl:-mr-1 inline" src="<%= logo_config[:image] %>" alt="logo" />
+                    <% if (logo_src = resolve_theme_logo_path).present? %>
+                        <img data-theme-logo-image class="h-8 w-auto max-w-[140px] ltr:-ml-1 rtl:-mr-1 inline object-contain" src="<%= logo_src %>" alt="logo"<%= " style=\"display:none\"".html_safe unless logo_config[:show_image] %> />
                     <% end %>
-                    <span class="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle hidden md:inline dark:text-white-light transition-all duration-300">
+                    <span data-theme-logo-text class="text-2xl ltr:ml-1.5 rtl:mr-1.5 font-semibold align-middle hidden md:inline dark:text-white-light transition-all duration-300"<%= " style=\"display:none\"".html_safe unless logo_config[:show_text] %>>
                         <%= logo_config[:text] %>
                     </span>
                 </a>
