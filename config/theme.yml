@@ -4,22 +4,22 @@
 # Se commitea a git para que la configuración viaje con el proyecto.
 # =============================================================================
 theme:
-  preset: autumn
+  preset: lemonade
   custom_colors:
-    primary: "#8c0327"
-    secondary: "#d85251"
-    success: "#2dd4bf"
-    danger: "#8c0327"
-    warning: "#f59e0b"
-    info: "#2563eb"
+    primary: "#519903"
+    secondary: "#e9e92f"
+    success: "#519903"
+    danger: "#e7515a"
+    warning: "#e9e92f"
+    info: "#2196f3"
 layout:
-  scheme: dark
+  scheme: light
   menu: vertical
   style: full
   direction: ltr
-  animation: ''
+  animation: animate__fadeIn
   navbar: navbar-sticky
-  semidark: false
+  semidark: true
 logo:
   text: Template Base
   image: "/assets/images/cuatropuntocero_logo_icon.PNG"

@@ -17,7 +17,10 @@ Rails.application.routes.draw do
     resources :users, only: %i[edit update]
   end
 
-  devise_for :users, skip: [:registrations]
+  devise_for :users, skip: [:registrations], controllers: {
+    sessions: "users/sessions",
+    passwords: "users/passwords"
+  }
   as :user do
     get 'users/edit' => 'users/registrations#edit', :as => 'edit_user_registration'
     put 'users' => 'devise/registrations#update', :as => 'user_registration'

@@ -111,6 +111,21 @@ module ThemeHelper
     active_theme_preset
   end
 
+  def theme_logo_text
+    theme_layout_config.dig(:logo, :text).presence
+  end
+
+  # Ruta pública del logo solo si el archivo existe (evita imágenes rotas).
+  def theme_logo_image_src
+    return unless theme_layout_config.dig(:logo, :show_image)
+
+    src = theme_layout_config.dig(:logo, :image).to_s
+    return if src.blank?
+
+    public_path = Rails.root.join("public", src.delete_prefix("/"))
+    src if File.exist?(public_path)
+  end
+
   # Devuelve todos los temas disponibles como JSON para el customizer
   def available_themes_json
     COLOR_THEMES.to_json

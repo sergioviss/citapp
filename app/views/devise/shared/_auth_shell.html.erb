@@ -1,0 +1,51 @@
+<style>
+    @media (max-width: 639px) {
+        #login-wrap { padding: 0 !important; }
+    }
+</style>
+<div class="relative min-h-screen overflow-hidden text-black dark:text-white-dark">
+    <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, #cfe3ff 0%, #a7c8fb 50%, #7fb0f7 100%);"></div>
+    <img src="/assets/images/map.svg" alt="" class="absolute inset-0 z-[1] h-full w-full object-cover opacity-30 mix-blend-multiply" />
+
+    <div id="cursor-glow"
+         class="pointer-events-none absolute left-0 top-0 rounded-full"
+         style="width: 760px; height: 760px; z-index: 2; opacity: 0.7; filter: blur(90px); background: radial-gradient(circle, rgba(91,140,235,0.55) 0%, rgba(91,140,235,0.22) 45%, rgba(91,140,235,0) 72%); transform: translate3d(-50%, -50%, 0); will-change: transform;"></div>
+
+    <div id="login-wrap" class="relative z-10 flex min-h-screen items-center justify-center px-6 py-10">
+        <div class="border border-slate-100 bg-white px-7 py-10 dark:border-white/10 dark:bg-black/50 sm:px-10" style="width: 90%; max-width: 576px; border-radius: 32px; box-shadow: 0 20px 60px -15px rgba(59,91,165,0.35);">
+            <div class="flex flex-col items-center text-center">
+                <% if theme_logo_image_src %>
+                    <img src="<%= theme_logo_image_src %>" alt="" class="max-w-full" style="width: 8rem; margin-bottom: 0.75rem;" />
+                <% elsif theme_logo_text %>
+                    <p class="text-lg font-extrabold tracking-wide" style="color:#3B5BA5; margin-bottom: 0.35rem;"><%= theme_logo_text %></p>
+                <% end %>
+                <h1 class="text-3xl font-extrabold uppercase !leading-snug md:text-4xl" style="color:#3B5BA5"><%= title %></h1>
+                <% if local_assigns[:subtitle].present? %>
+                    <p class="font-medium leading-normal text-white-dark" style="margin-top: 0; margin-bottom: 1.25rem; font-size: 0.8rem;"><%= subtitle %></p>
+                <% end %>
+            </div>
+
+            <% if notice %>
+            <div class="mt-6 flex items-center rounded p-3.5 text-white bg-success">
+                <span class="ltr:pr-1 rtl:pl-1"><strong class="ltr:mr-1 rtl:ml-1"><%= notice %></strong></span>
+            </div>
+            <% end %>
+            <% if alert.present? %>
+            <div class="mt-6 flex items-center rounded p-3.5 text-white bg-danger">
+                <span class="ltr:pr-1 rtl:pl-1"><strong class="ltr:mr-1 rtl:ml-1"><%= alert %></strong></span>
+            </div>
+            <% end %>
+
+            <%= yield %>
+
+            <div class="mt-6 text-center dark:text-white">
+                <%= render "devise/shared/links" %>
+            </div>
+
+            <p class="mt-8 text-center text-xs text-white-dark">
+                © <span id="footer-year"><%= Time.current.year %></span><% if theme_logo_text %> <strong><%= theme_logo_text %></strong>.<% end %> Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</div>
+<%= render "devise/shared/cursor_glow" %>

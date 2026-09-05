@@ -1,64 +1,65 @@
-    <div class="flex items-center justify-between mb-5">
-            <h5 class="font-semibold text-2xl dark:text-white-light">Mi cuenta</h5>
-
-        </div>
-        <p style="color: green"><%= notice %></p>
-
-<p style="color: green"><%= alert %></p>
-<div class="panel lg:row-start-3 lg:col-start-2">
-  <div class="flex items-center justify-between mb-5">
-     <h5 class="font-semibold text-lg dark:text-white-light"> Datos</h5>
-
-  </div>
-  
-  <div class="mb-5">
-  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |form| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
-                     <div>
-                        <label for="actionName">Nombre completo:</label>
-                          <%= form.text_field :full_name, autofocus: true, class: 'form-input', placeholder:"Ingresa Nombre completo", required: 'true', disabled: true  %>
-                        
-                    </div>
-                      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                       <div class="md:col-span-2">
-                        <label for="actionEmail">Email:</label>
-                        <div class="flex flex-1">
-                            <div class="bg-[#eee] flex justify-center items-center ltr:rounded-l-md rtl:rounded-r-md px-3 font-semibold border ltr:border-r-0 rtl:border-l-0 border-[#e0e6ed] dark:border-[#17263c] dark:bg-[#1b2e4b]">@</div>
-                            
-                            <%= form.email_field :email, autofocus: true,type:"email", class: 'form-input ltr:rounded-l-none rtl:rounded-r-none', required: 'true', disabled: true  %>
-                        </div>
-                      </div>
-                     </div>
-
-                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                       <div class="md:col-span-2">
-                        <label for="actionPassword">Contraseña:</label>
-                        <%= form.password_field :password, id: 'user_password', class: 'form-input', placeholder:"Ingresa Contraseña", minlength: User.minimum_password_length %>
-                        
-                      </div>
-                      <div class="md:col-span-2">
-                        <label for="actionCpass">Confirmar Contraseña:</label>
-                        
-                         <%= form.password_field :password_confirmation, id: 'user_password_confirm', placeholder:"Ingresa Contraseña", class: 'form-input', minlength: User.minimum_password_length, 'equalTo': '#user_password' %>
-                      </div>
-                     </div>
-
-                      <div class="">
-                        <label class="" for="inputPassword4">Contraseña actual (Necesitamos tu contraseña actual para confirmar los cambios)</label>
-
-                          <%= form.password_field :current_password, class: 'form-input', autocomplete: 'current-password' %>
-                      </div>
-                       <div class="flex items-center justify-center ltr:mt-8 " style="margin-top: 5em;">
-                      <button type="submit" class="btn btn-success gap-2">
-
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ltr:mr-2 rtl:ml-2 shrink-0">
-                            <path d="M3.46447 20.5355C4.92893 22 7.28595 22 12 22C16.714 22 19.0711 22 20.5355 20.5355C22 19.0711 22 16.714 22 12C22 11.6585 22 11.4878 21.9848 11.3142C21.9142 10.5049 21.586 9.71257 21.0637 9.09034C20.9516 8.95687 20.828 8.83317 20.5806 8.58578L15.4142 3.41944C15.1668 3.17206 15.0431 3.04835 14.9097 2.93631C14.2874 2.414 13.4951 2.08581 12.6858 2.01515C12.5122 2 12.3415 2 12 2C7.28595 2 4.92893 2 3.46447 3.46447C2 4.92893 2 7.28595 2 12C2 16.714 2 19.0711 3.46447 20.5355Z" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M17 22V21C17 19.1144 17 18.1716 16.4142 17.5858C15.8284 17 14.8856 17 13 17H11C9.11438 17 8.17157 17 7.58579 17.5858C7 18.1716 7 19.1144 7 21V22" stroke="currentColor" stroke-width="1.5" />
-                            <path opacity="0.5" d="M7 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                        </svg>
-                        Guardar </button>
-                        </div>
-                        </div>
-<% end %>
+<div class="flex items-center justify-between mb-5">
+    <h5 class="font-semibold text-2xl dark:text-white-light">Mi cuenta</h5>
 </div>
+
+<% if notice.present? %>
+    <div class="mb-5 flex items-center rounded p-3.5 text-white bg-success">
+        <strong><%= notice %></strong>
+    </div>
+<% end %>
+<% if alert.present? %>
+    <div class="mb-5 flex items-center rounded p-3.5 text-white bg-danger">
+        <strong><%= alert %></strong>
+    </div>
+<% end %>
+
+<div class="panel">
+    <div class="flex items-center justify-between mb-5">
+        <h5 class="font-semibold text-lg dark:text-white-light">Cambiar contraseña</h5>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |form| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <div class="mb-5">
+            <label for="user_full_name" class="font-semibold">Nombre completo</label>
+            <%= form.text_field :full_name, autofocus: true, class: "form-input", placeholder: "Ingresa nombre completo", required: true, disabled: true %>
+        </div>
+
+        <div class="mb-5">
+            <label for="user_email" class="font-semibold">Correo electrónico</label>
+            <div class="flex flex-1">
+                <div class="bg-[#eee] flex justify-center items-center ltr:rounded-l-md rtl:rounded-r-md px-3 font-semibold border ltr:border-r-0 rtl:border-l-0 border-[#e0e6ed] dark:border-[#17263c] dark:bg-[#1b2e4b]">@</div>
+                <%= form.email_field :email, class: "form-input ltr:rounded-l-none rtl:rounded-r-none", required: true, disabled: true %>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div>
+                <label for="user_password" class="font-semibold">Nueva contraseña</label>
+                <%= form.password_field :password, id: "user_password", class: "form-input", placeholder: "Ingresa contraseña", minlength: User.minimum_password_length, autocomplete: "new-password" %>
+            </div>
+            <div>
+                <label for="user_password_confirm" class="font-semibold">Confirmar contraseña</label>
+                <%= form.password_field :password_confirmation, id: "user_password_confirm", placeholder: "Confirma la contraseña", class: "form-input", minlength: User.minimum_password_length, autocomplete: "new-password" %>
+            </div>
+        </div>
+
+        <div class="mb-5">
+            <label for="user_current_password" class="font-semibold">Contraseña actual</label>
+            <p class="text-xs text-white-dark mb-2">Necesitamos tu contraseña actual para confirmar los cambios.</p>
+            <%= form.password_field :current_password, class: "form-input", autocomplete: "current-password" %>
+        </div>
+
+        <div class="flex items-center justify-center" style="margin-top: 3rem;">
+            <button type="submit" class="btn gap-2 text-white border-0" style="background: linear-gradient(135deg, #2A4590 0%, #3B5BA5 100%);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ltr:mr-2 rtl:ml-2 shrink-0">
+                    <path d="M3.46447 20.5355C4.92893 22 7.28595 22 12 22C16.714 22 19.0711 22 20.5355 20.5355C22 19.0711 22 16.714 22 12C22 11.6585 22 11.4878 21.9848 11.3142C21.9142 10.5049 21.586 9.71257 21.0637 9.09034C20.9516 8.95687 20.828 8.83317 20.5806 8.58578L15.4142 3.41944C15.1668 3.17206 15.0431 3.04835 14.9097 2.93631C14.2874 2.414 13.4951 2.08581 12.6858 2.01515C12.5122 2 12.3415 2 12 2C7.28595 2 4.92893 2 3.46447 3.46447C2 4.92893 2 7.28595 2 12C2 16.714 2 19.0711 3.46447 20.5355Z" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M17 22V21C17 19.1144 17 18.1716 16.4142 17.5858C15.8284 17 14.8856 17 13 17H11C9.11438 17 8.17157 17 7.58579 17.5858C7 18.1716 7 19.1144 7 21V22" stroke="currentColor" stroke-width="1.5" />
+                    <path opacity="0.5" d="M7 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                Guardar
+            </button>
+        </div>
+    <% end %>
 </div>
