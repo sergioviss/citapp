@@ -1,0 +1,21 @@
+    <div class="flex items-center justify-between mb-5">
+            <h5 class="font-semibold text-2xl dark:text-white-light">Usuarios</h5>
+            <div class="ltr:before:mr-1 rtl:before:ml-1">
+  <%= link_to 'Regresar a usuarios', users_path, class: 'text-primary hover:underline' %>
+  </div>
+        </div>
+<div class="panel lg:row-start-3 lg:col-start-2">
+  <div class="flex items-center justify-between mb-5">
+     <h5 class="font-semibold text-lg dark:text-white-light"> <%= @title %></h5>
+
+  </div>
+  
+  <div class="mb-5">
+    <%= render 'form', user: @user %>
+
+  </div>
+
+
+
+</div>
+

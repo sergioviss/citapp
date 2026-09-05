@@ -1,0 +1,53 @@
+<div class="container-fluid p-0">
+<h1 class="h3 mb-3"><strong>Usuarios</h1>
+<p style="color: green"><%= notice %></p>
+  <div class="row">
+            <div class="col-12 col-lg-10 col-xxl-9 d-flex">
+              <div class="card flex-fill">
+                <div class="card-header">
+
+                  <h5 class="card-title mb-0">Detalles</h5>
+                </div>
+                <div class="card-body">
+
+<div class="row">
+                      <div class="mb-3 col-md-6">
+                        <label class="form-label" for="inputEmail4">Email</label>
+                         <input value=<%= @user.email %> class="form-control" disabled="true">
+
+                      </div>
+                      <div class="mb-3 col-md-6">
+                        <label class="form-label" for="inputEmail4">Nombre completo</label>
+                         <input value='<%= @user.full_name%>'  class="form-control" disabled="true">
+
+                      </div>
+
+                        <div class="mb-3 col-md-6">
+                    <label class="form-label" for="inputState">Rol</label>
+                     <input value=<%= @user.rol.name %> class="form-control" disabled="true">
+
+                      </div>
+                    </div>
+
+</div>
+<div class="card-footer ">
+   <%= link_to edit_admin_user_path(@user), class: 'btn btn-info', data: { turbolinks: 'false' } do %>
+                      Cambiar contraseña
+                    <% end %>
+
+                    <%= link_to edit_user_path(@user), class: 'btn btn-primary', data: { turbolinks: 'false' } do %>
+                      Editar
+                    <% end %>  |
+
+  <%= link_to @user, data: {turbo_method: :delete, turbo_confirm: '¿Estás seguro que deasea eliminar el rancho?'} do %>
+                      <%= button_tag 'Eliminar', class: 'btn btn-danger' %>
+                    <% end %>
+
+  <%= link_to 'Regresar a usuarios', users_path, class: 'float-end' %>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>

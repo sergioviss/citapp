@@ -1,0 +1,26 @@
+# =============================================================================
+# Configuración de Tema del Template Customizer
+# Este archivo se genera/actualiza automáticamente desde el panel de customización.
+# Se commitea a git para que la configuración viaje con el proyecto.
+# =============================================================================
+theme:
+  preset: autumn
+  custom_colors:
+    primary: "#8c0327"
+    secondary: "#d85251"
+    success: "#2dd4bf"
+    danger: "#8c0327"
+    warning: "#f59e0b"
+    info: "#2563eb"
+layout:
+  scheme: dark
+  menu: vertical
+  style: full
+  direction: ltr
+  animation: ''
+  navbar: navbar-sticky
+  semidark: false
+logo:
+  text: Template Base
+  image: "/assets/images/cuatropuntocero_logo_icon.PNG"
+  show_image: true

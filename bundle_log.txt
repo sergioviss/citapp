@@ -1,0 +1,19 @@
+Fetching gem metadata from https://rubygems.org/.........
+Resolving dependencies...
+WARN: Unresolved or ambiguous specs during Gem::Specification.reset:
+      psych (>= 4.0.0)
+      Available/installed versions of this gem:
+      - 5.3.1
+      - 5.1.2
+      erb (>= 0)
+      Available/installed versions of this gem:
+      - 6.0.3
+      - 6.0.2
+      - 6.0.1
+      - 4.0.3
+WARN: Clearing out unresolved specs. Try 'gem cleanup <gem>'
+Please report a bug if this causes problems.
+Bundle complete! 33 Gemfile dependencies, 141 gems now installed.
+Use `bundle info [gemname]` to see where a bundled gem is installed.
+2 installed gems you directly depend on are looking for funding.
+  Run `bundle fund` for details

@@ -1,0 +1,27 @@
+<div class="container-fluid p-0">
+<h1 class="h3 mb-3"><strong>Usuarios</h1>
+
+<p style="color: green"><%= notice %></p>
+
+<p style="color: red"><%= alert %></p>
+  <div class="row">
+            <div class="col-12 col-lg-10 col-xxl-9 d-flex">
+              <div class="card flex-fill">
+                <div class="card-header">
+
+                  <h5 class="card-title mb-0">Editar</h5>
+                </div>
+                <div class="card-body">
+
+<%= render 'form', user: @user %>
+
+</div>
+<div class="card-footer">
+
+<%= link_to 'Regresar a usuarios', users_path %>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
