@@ -19,7 +19,7 @@ layout:
   direction: ltr
   animation: animate__fadeIn
   navbar: navbar-sticky
-  semidark: true
+  semidark: false
 logo:
   text: Template Base
   image: cuatropuntocero_logo.png
