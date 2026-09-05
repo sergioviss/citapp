@@ -1,195 +1,109 @@
-<style>
-    /* Añade esto a tu archivo de estilos */
-    .dt-buttons .btn-success {
-        background-color: #198754 !important;
-        border: 2px solid #198754 !important;
-        border-radius: 5px !important;
-        margin-left: 20px;
-        padding: 8px 15px !important;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
+<%= render 'shared/admin_datatable_assets' %>
 
-    .dt-buttons .btn-success:hover {
-        background-color: #157347 !important;
-        border-color: #146c43 !important;
-        transform: translateY(-1px);
-    }
+<div x-data="usersList">
+  <div class="flex items-center justify-end mb-4">
+    <button type="button" class="btn btn-primary gap-2" @click="openCreateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Agregar Usuario
+    </button>
+  </div>
 
-    /* Eliminar posibles efectos fantasmas */
-    .dt-button:before,
-    .dt-button:after {
-        content: none !important;
-    }
+  <div class="panel px-4 border-[#e0e6ed] dark:border-[#1b2e4b]">
+    <%= render_admin_datatable_toolbar(User, export_url: export_users_path(format: :xlsx)) %>
 
-    /* Estilos para el menú de cantidad de registros */
-    .dataTables_length {
-        margin-bottom: 1rem;
-        margin-left: 20px;
-
-    }
-
-    .dataTables_length label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .dataTables_length select {
-        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        background-color: white;
-        transition: border-color 0.15s ease-in-out;
-    }
-
-    .dataTables_length select:focus {
-        border-color: #86b7fe;
-        outline: 0;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-
-    /* Dark mode */
-    .dark .dataTables_length select {
-        background-color: #1e293b;
-        border-color: #334155;
-        color: #f8fafc;
-    }
-</style>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.3.3/css/buttons.dataTables.min.css">
-<div class="flex items-center justify-between mb-5">
-    <h3 class="font-semibold text-2xl dark:text-white-light">Usuarios</h3>
-    <div class="ltr:before:mr-1 rtl:before:ml-1">
-        <%= link_to new_user_path, class:'btn btn-primary', data: { turbolinks: 'false' } do %>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Agregar Usuario
-            <% end %>
-
+    <div class="invoice-table table-responsive">
+      <table id="usersTable" class="table-hover w-full">
+        <thead>
+          <tr>
+            <th class="!px-4 !py-2">Nombre</th>
+            <th class="!px-4 !py-2">Email</th>
+            <th class="!px-4 !py-2">Rol</th>
+            <th class="!px-4 !py-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
+  </div>
+
+  <%= render 'shared/create_record_modal',
+      title: 'Agregar Usuario',
+      errors_id: 'create-user-errors',
+      body: render('form', user: @user, modal: true, form_title: 'Registrar', mode: 'new', roles: @roles) %>
+
+  <%= render 'shared/record_modal', errors_id: 'record-modal-errors' %>
 </div>
-<div x-data="invoiceList">
-
-
-    <div class="panel px-0 border-[#e0e6ed] dark:border-[#1b2e4b]">
-        <div class="px-5">
-            <div class="md:top-5 ltr:md:left-5 rtl:md:right-5">
-                <div class="flex items-center gap-2 mb-5">
-
-
-
-                </div>
-            </div>
-        </div>
-        <%= render_datatable_filters(User) %>
-
-            <div class="invoice-table">
-                <table id="myTable" class="whitespace-nowrap">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th class="d-xl-table-cell">Email</th>
-                            <th class="d-xl-table-cell">Rol</th>
-
-                            <th class="d-md-table-cell">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-
-
-                    </tbody>
-                </table>
-            </div>
-
-    </div>
-</div>
-
-<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
-
-<script src="https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.3/js/buttons.html5.min.js"></script>
-
 
 <script>
-    document.addEventListener("alpine:init", () => {
-        Alpine.data('invoiceList', () => ({
-            init() {
-                this.initializeTable();
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('usersList', () => ({
+      showCreateModal: false,
+      ...AdminDatatable.recordModalMixin('#record-modal-errors'),
+
+      init() {
+        $(document).ready(() => {
+          AdminDatatable.setupFilters('#usersTable');
+          this.initializeDataTable();
+          AdminDatatable.bindModalForm('#create-user-form', {
+            onSuccess: () => {
+              this.closeCreateModal();
+              AdminDatatable.reload('#usersTable');
             },
-
-            initializeTable() {
-                $(document).ready(() => {
-                    // Configuración de eventos para filtros
-                    this.setupFilters();
-                    
-                    // Inicialización de DataTable
-                    this.initializeDataTable();
-                });
-            },
-
-            setupFilters() {
-                // Evento para recargar tabla cuando cambian los filtros
-                $('.select2').on('change', () => {
-                    $('#myTable').DataTable().ajax.reload();
-                });
-
-                // Evento para limpiar filtros
-                $('#clearFilters').on('click', () => {
-                    $('#datatable-filters select').val(null).trigger('change');
-                    $('#myTable').DataTable().ajax.reload();
-                });
-            },
-
-            initializeDataTable() {
-                $('#myTable').DataTable({
-                    serverSide: true,
-                    processing: true,
-                    ajax: {
-                        url: '<%= datatable_users_path %>',
-                        data: (d) => {
-                            d.filter_full_name = $('#filter_full_name').val();
-                            d.filter_rol_name = $('#filter_rol_name').val();
-                            d.filter_email = $('#filter_email').val();
-                        }
-                    },
-                    columns: [
-                        { data: 'full_name' },
-                        { data: 'email' },
-                        { data: 'rol_name' },
-                        {
-                            data: 'actions',
-                            orderable: false,
-                            searchable: false
-                        }
-                    ],
-                    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 text-right"fB>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
-                    lengthMenu: [[10, 20, 50], [10, 20, 50]],
-                    pageLength: 10,
-                    buttons: [
-                        {
-                            extend: 'excel',
-                            text: '<i class="fas fa-file-excel me-2"></i>Exportar a Excel',
-                            className: 'btn btn-success shadow-sm',
-                            action: () => {
-                                window.location.href = '<%= export_users_path(format: :xlsx) %>';
-                            },
-                            init: (api, node) => {
-                                $(node).removeClass('dt-button');
-                            }
-                        }
-                    ],
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.1/i18n/es-ES.json'
-                    }
-                });
+            onError: (payload) => {
+              AdminDatatable.showFormErrors('#create-user-errors', payload.errors);
             }
-        }));
-    });
+          });
+          AdminDatatable.bindRecordActions('#usersTable', {
+            errorsId: '#record-modal-errors'
+          });
+        });
+      },
+
+      openCreateModal() {
+        AdminDatatable.showFormErrors('#create-user-errors', []);
+        this.showCreateModal = true;
+      },
+
+      closeCreateModal() {
+        this.showCreateModal = false;
+        AdminDatatable.showFormErrors('#create-user-errors', []);
+        const form = document.querySelector('#create-user-form');
+        if (form) form.reset();
+      },
+
+      initializeDataTable() {
+        $('#usersTable').DataTable({
+          ...AdminDatatable.tableDefaults,
+          serverSide: true,
+          processing: true,
+          ajax: {
+            url: '<%= datatable_users_path %>',
+            data: (d) => {
+              d.filter_full_name = $('#filter_full_name').val();
+              d.filter_rol_name = $('#filter_rol_name').val();
+              d.filter_email = $('#filter_email').val();
+            }
+          },
+          columns: [
+            { data: 'full_name', width: '22%' },
+            { data: 'email', width: '38%' },
+            { data: 'rol_name', width: '20%' },
+            { data: 'actions', width: '20%', orderable: false, searchable: false }
+          ],
+          order: [],
+          dom: AdminDatatable.dom,
+          lengthMenu: AdminDatatable.lengthMenu,
+          pageLength: AdminDatatable.pageLength,
+          language: AdminDatatable.language,
+          initComplete: function() {
+            AdminDatatable.initComplete(this.api());
+          }
+        });
+      }
+    }));
+  });
 </script>

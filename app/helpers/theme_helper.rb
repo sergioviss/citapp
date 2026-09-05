@@ -134,10 +134,23 @@ module ThemeHelper
     theme_layout_config.dig(:logo, :show_text) != false
   end
 
+  def theme_app_name
+    theme_layout_config.dig(:logo, :text).presence || "Template Base"
+  end
+
   def theme_logo_text
     return unless theme_show_logo_text?
 
-    theme_layout_config.dig(:logo, :text).presence
+    theme_app_name
+  end
+
+  def document_title
+    page = content_for(:title).presence || @page_title.presence
+    [page, theme_app_name].compact.uniq.join(" — ")
+  end
+
+  def document_page_title
+    content_for(:title).presence || @page_title.presence
   end
 
   def theme_logo_image_src

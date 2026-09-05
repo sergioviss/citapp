@@ -1,0 +1,51 @@
+<%#
+  locals:
+    errors_id: container id for ajax validation errors
+    size: optional, "sm" | "md" (default md)
+%>
+<% panel_size_class = case local_assigns[:size]
+                      when 'sm' then 'main-content-modal-panel--sm'
+                      when 'lg' then 'main-content-modal-panel--lg'
+                      when 'xl' then 'main-content-modal-panel--xl'
+                      when '2xl' then 'main-content-modal-panel--2xl'
+                      when '3xl' then 'main-content-modal-panel--3xl'
+                      when '4xl' then 'main-content-modal-panel--4xl'
+                      else 'main-content-modal-panel--md'
+                      end %>
+<template x-teleport="body">
+  <div x-show="recordModalOpen"
+       x-cloak
+       class="main-content-modal-overlay bg-black/60"
+       @keydown.escape.window="closeRecordModal()"
+       @click.self="closeRecordModal()">
+    <div class="main-content-modal-center" @click="closeRecordModal()">
+      <div x-show="recordModalOpen"
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="opacity-0 scale-95"
+           x-transition:enter-end="opacity-100 scale-100"
+           x-transition:leave="transition ease-in duration-200"
+           x-transition:leave-start="opacity-100 scale-100"
+           x-transition:leave-end="opacity-0 scale-95"
+           class="main-content-modal-panel <%= panel_size_class %> panel border-0 p-0 rounded-lg overflow-hidden w-full"
+           @click.stop>
+        <div class="flex items-center justify-between px-5 py-3 border-b border-[#e0e6ed] dark:border-[#1b2e4b] shrink-0">
+          <div class="flex items-center gap-2 min-w-0 flex-wrap">
+            <h5 class="font-bold text-lg dark:text-white-light" x-text="recordModalTitle"></h5>
+            <span x-show="recordModalBadge" x-cloak class="badge badge-outline-primary" x-text="recordModalBadge"></span>
+            <span x-show="recordModalBadgeNote" x-cloak class="text-xs text-white-dark" x-text="recordModalBadgeNote"></span>
+          </div>
+          <button type="button" class="text-white-dark hover:text-dark" @click="closeRecordModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="main-content-modal-body main-content-modal-body--flush-top px-5 pb-5">
+          <div id="<%= errors_id %>" class="hidden"></div>
+          <div id="record-modal-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

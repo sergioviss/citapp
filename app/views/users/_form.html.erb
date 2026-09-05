@@ -1,97 +1,93 @@
+<% modal = local_assigns.fetch(:modal, false) %>
+<% form_title = local_assigns.fetch(:form_title, @title) %>
+<% roles = local_assigns.fetch(:roles, @roles) %>
+<% mode = local_assigns.fetch(:mode, @mode) %>
+<% read_only = form_title == 'Detalles' %>
+<% form_id = if !modal
+  'new_user_form'
+elsif read_only
+  'user-show-modal'
+elsif mode == 'new'
+  'create-user-form'
+else
+  'record-modal-form'
+end %>
 
-
-<%= form_with model: user, id: 'new_user_form', local: true, html: { class: 'space-y-5' } do |form| %>
-  <% if user.errors.any? %>
+<%= form_with model: user,
+              id: form_id,
+              local: true,
+              html: {
+                class: 'space-y-5',
+                data: {
+                  turbo: false,
+                  modal_form: (modal && !read_only && mode != 'new')
+                }
+              } do |form| %>
+  <% if !modal && user.errors.any? %>
     <div style="color: red">
-
       <h2><%= pluralize(user.errors.count, 'error') %> prohibited this user from being saved:</h2>
-
       <ul>
-
         <% user.errors.each do |error| %>
-
           <li><%= error.full_message %></li>
         <% end %>
       </ul>
     </div>
   <% end %>
 
-                    <div>
-                        <label for="actionName">Nombre completo:</label>
-                          <%= form.text_field :full_name, autofocus: true, class: 'form-input', placeholder:"Ingresa Nombre completo", required: 'true', disabled: @title == 'Detalles'  %>
-                        
-                    </div>
-                      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                       <div class="md:col-span-2">
-                        <label for="actionEmail">Email:</label>
-                        <div class="flex flex-1">
-                            <div class="bg-[#eee] flex justify-center items-center ltr:rounded-l-md rtl:rounded-r-md px-3 font-semibold border ltr:border-r-0 rtl:border-l-0 border-[#e0e6ed] dark:border-[#17263c] dark:bg-[#1b2e4b]">@</div>
-                            
-                            <%= form.email_field :email, autofocus: true,type:"email", class: 'form-input ltr:rounded-l-none rtl:rounded-r-none', required: 'true', disabled: @title == 'Detalles'  %>
-                        </div>
-                      </div>
-                        <div class="md:col-span-2">
-                          <label for="actionWeb">Rol:</label>
-                        
-                           <%= form.collection_select :rol_id, @roles, :id, :name, { prompt: 'Selecciona un rol' }, class: 'form-select flex-1', disabled: @title == 'Detalles' , required: 'true' do |role| %>
-                              <%= role.option_tag(role.name, role.id) %>
-                            <% end %>
-                        </div>
-                     </div>
-                    <% if @mode == "new" %>
-                   <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                       <div class="md:col-span-2">
-                        <label for="actionPassword">Contraseña:</label>
-                        <%= form.password_field :password, id: 'user_password', class: 'form-input', placeholder:"Ingresa Contraseña", minlength: User.minimum_password_length %>
-                        
-                      </div>
-                    <div class="md:col-span-2">
-                        <label for="actionCpass">Confirmar Contraseña:</label>
-                        
-                         <%= form.password_field :password_confirmation, id: 'user_password_confirm', placeholder:"Ingresa Contraseña", class: 'form-input', minlength: User.minimum_password_length, 'equalTo': '#user_password' %>
-                    </div>
-                     </div>
-                       <% end %>
+  <div>
+    <label for="actionName">Nombre completo:</label>
+    <%= form.text_field :full_name, autofocus: true, class: 'form-input', placeholder: "Ingresa Nombre completo", required: !read_only, disabled: read_only %>
+  </div>
 
+  <div class="<%= modal ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4' %>">
+    <div class="<%= modal ? '' : 'md:col-span-2' %>">
+      <label for="actionEmail">Email:</label>
+      <div class="flex flex-1">
+        <div class="bg-[#eee] flex justify-center items-center ltr:rounded-l-md rtl:rounded-r-md px-3 font-semibold border ltr:border-r-0 rtl:border-l-0 border-[#e0e6ed] dark:border-[#17263c] dark:bg-[#1b2e4b]">@</div>
+        <%= form.email_field :email, type: "email", class: 'form-input ltr:rounded-l-none rtl:rounded-r-none', required: !read_only, disabled: read_only %>
+      </div>
+    </div>
+    <div class="<%= modal ? '' : 'md:col-span-2' %>">
+      <label for="actionWeb">Rol:</label>
+      <%= form.collection_select :rol_id, roles, :id, :name, { prompt: 'Selecciona un rol' }, class: 'form-select flex-1', disabled: read_only, required: !read_only %>
+    </div>
+  </div>
 
+  <% if mode == "new" && !read_only %>
+    <div class="<%= modal ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4' %>">
+      <div class="<%= modal ? '' : 'md:col-span-2' %>">
+        <label for="actionPassword">Contraseña:</label>
+        <%= form.password_field :password, id: 'user_password', class: 'form-input', placeholder: "Ingresa Contraseña", minlength: User.minimum_password_length %>
+      </div>
+      <div class="<%= modal ? '' : 'md:col-span-2' %>">
+        <label for="actionCpass">Confirmar Contraseña:</label>
+        <%= form.password_field :password_confirmation, id: 'user_password_confirm', placeholder: "Ingresa Contraseña", class: 'form-input', minlength: User.minimum_password_length, 'equalTo': '#user_password' %>
+      </div>
+    </div>
+  <% end %>
 
-                    <div class="flex items-center justify-center" style="margin-top: 5em;">
-                     <% if @title=="Detalles"%>
-                         <%= link_to edit_user_path(user), class: 'btn btn-primary gap-2 ltr:mr-5 rtl:ml-5', data: { turbolinks: 'false' } do %>
-                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-5">
-                                                <path d="M11.4001 18.1612L11.4001 18.1612L18.796 10.7653C17.7894 10.3464 16.5972 9.6582 15.4697 8.53068C14.342 7.40298 13.6537 6.21058 13.2348 5.2039L5.83882 12.5999L5.83879 12.5999C5.26166 13.1771 4.97307 13.4657 4.7249 13.7838C4.43213 14.1592 4.18114 14.5653 3.97634 14.995C3.80273 15.3593 3.67368 15.7465 3.41556 16.5208L2.05445 20.6042C1.92743 20.9852 2.0266 21.4053 2.31063 21.6894C2.59466 21.9734 3.01478 22.0726 3.39584 21.9456L7.47918 20.5844C8.25351 20.3263 8.6407 20.1973 9.00498 20.0237C9.43469 19.8189 9.84082 19.5679 10.2162 19.2751C10.5343 19.0269 10.823 18.7383 11.4001 18.1612Z" fill="currentColor"></path>
-                                                <path d="M20.8482 8.71306C22.3839 7.17735 22.3839 4.68748 20.8482 3.15178C19.3125 1.61607 16.8226 1.61607 15.2869 3.15178L14.3999 4.03882C14.4121 4.0755 14.4246 4.11268 14.4377 4.15035C14.7628 5.0875 15.3763 6.31601 16.5303 7.47002C17.6843 8.62403 18.9128 9.23749 19.85 9.56262C19.8875 9.57563 19.9245 9.58817 19.961 9.60026L20.8482 8.71306Z" fill="currentColor"></path>
-                                            </svg>
-                           Editar
-                                  <% end %>                   
-                          <%= link_to @user,  class:"btn btn-danger gap-2" ,data: {turbo_method: :delete, turbo_confirm: '¿Estás seguro que deasea eliminar el rancho?'} do %>
-                          
-
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
-                            <path d="M20.5001 6H3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                            <path d="M18.8334 8.5L18.3735 15.3991C18.1965 18.054 18.108 19.3815 17.243 20.1907C16.378 21 15.0476 21 12.3868 21H11.6134C8.9526 21 7.6222 21 6.75719 20.1907C5.89218 19.3815 5.80368 18.054 5.62669 15.3991L5.16675 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                            <path opacity="0.5" d="M9.5 11L10 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                            <path opacity="0.5" d="M14.5 11L14 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                            <path opacity="0.5" d="M6.5 6C6.55588 6 6.58382 6 6.60915 5.99936C7.43259 5.97849 8.15902 5.45491 8.43922 4.68032C8.44784 4.65649 8.45667 4.62999 8.47434 4.57697L8.57143 4.28571C8.65431 4.03708 8.69575 3.91276 8.75071 3.8072C8.97001 3.38607 9.37574 3.09364 9.84461 3.01877C9.96213 3 10.0932 3 10.3553 3H13.6447C13.9068 3 14.0379 3 14.1554 3.01877C14.6243 3.09364 15.03 3.38607 15.2493 3.8072C15.3043 3.91276 15.3457 4.03708 15.4286 4.28571L15.5257 4.57697C15.5433 4.62992 15.5522 4.65651 15.5608 4.68032C15.841 5.45491 16.5674 5.97849 17.3909 5.99936C17.4162 6 17.4441 6 17.5 6" stroke="currentColor" stroke-width="1.5"></path>
-                        </svg>
-                        Eliminar 
-                        <% end %> 
-                     
-                     <%else%>
-                     <button type="submit" class="btn btn-success gap-2">
-
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ltr:mr-2 rtl:ml-2 shrink-0">
-                            <path d="M3.46447 20.5355C4.92893 22 7.28595 22 12 22C16.714 22 19.0711 22 20.5355 20.5355C22 19.0711 22 16.714 22 12C22 11.6585 22 11.4878 21.9848 11.3142C21.9142 10.5049 21.586 9.71257 21.0637 9.09034C20.9516 8.95687 20.828 8.83317 20.5806 8.58578L15.4142 3.41944C15.1668 3.17206 15.0431 3.04835 14.9097 2.93631C14.2874 2.414 13.4951 2.08581 12.6858 2.01515C12.5122 2 12.3415 2 12 2C7.28595 2 4.92893 2 3.46447 3.46447C2 4.92893 2 7.28595 2 12C2 16.714 2 19.0711 3.46447 20.5355Z" stroke="currentColor" stroke-width="1.5" />
-                            <path d="M17 22V21C17 19.1144 17 18.1716 16.4142 17.5858C15.8284 17 14.8856 17 13 17H11C9.11438 17 8.17157 17 7.58579 17.5858C7 18.1716 7 19.1144 7 21V22" stroke="currentColor" stroke-width="1.5" />
-                            <path opacity="0.5" d="M7 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                        </svg>
-                        Guardar </button>
-                        </div>
-                     <%end%>
-                        
-               <% end %>
-            </div>
-
-                 
-    
-
+  <div class="flex items-center <%= modal ? 'justify-end' : 'justify-center' %>" style="margin-top: <%= modal ? '1.5rem' : '5em' %>;">
+    <% if read_only %>
+      <% if modal %>
+        <button type="button" class="btn btn-outline-danger gap-2 ltr:mr-4 rtl:ml-4" @click="closeRecordModal()">Cerrar</button>
+        <button type="button" class="btn btn-primary gap-2 datatable-action-edit" data-url="<%= edit_user_path(user) %>">Editar</button>
+      <% else %>
+        <%= link_to edit_user_path(user), class: 'btn btn-primary gap-2 ltr:mr-5 rtl:ml-5', data: { turbolinks: 'false' } do %>
+          Editar
+        <% end %>
+        <%= link_to @user, class: "btn btn-danger gap-2", data: { turbo_method: :delete, turbo_confirm: '¿Estás seguro que deasea eliminar el rancho?' } do %>
+          Eliminar
+        <% end %>
+      <% end %>
+    <% else %>
+      <% if modal %>
+        <button type="button"
+                class="btn btn-outline-danger gap-2 ltr:mr-4 rtl:ml-4"
+                @click="<%= mode == 'new' ? 'closeCreateModal()' : 'closeRecordModal()' %>">
+          Cancelar
+        </button>
+      <% end %>
+      <button type="submit" class="btn btn-success gap-2">Guardar</button>
+    <% end %>
+  </div>
+<% end %>

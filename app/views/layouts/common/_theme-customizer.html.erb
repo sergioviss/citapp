@@ -261,6 +261,16 @@
                     body: JSON.stringify(data)
                 }).catch(err => console.warn('Logo save failed:', err));
                 this.applyLogoVisibility();
+                if (key === 'text') this.updateDocumentTitle(value);
+            },
+
+            updateDocumentTitle(appName) {
+                const name = (appName || '').trim();
+                const pageTitle = document.documentElement.dataset.pageTitle;
+                document.title = [pageTitle, name].filter(Boolean).join(' — ');
+                document.querySelectorAll('[data-theme-logo-text]').forEach((el) => {
+                    el.textContent = name;
+                });
             },
 
             applyLogoVisibility() {
