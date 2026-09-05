@@ -9,6 +9,7 @@ rol_admin = Rol.find_or_create_by(name: 'Administrador')
 soporte = User.find_by(email: 'soporte@cuatropuntocero.solutions')
 if soporte.nil?
   soporte = User.new
+  soporte.full_name = 'Soporte'
   soporte.email = 'soporte@cuatropuntocero.solutions'
   soporte.rol_id = rol_admin.id
   soporte.password = 'Solutions123456'

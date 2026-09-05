@@ -4,23 +4,24 @@
 # Se commitea a git para que la configuración viaje con el proyecto.
 # =============================================================================
 theme:
-  preset: autumn
+  preset: default
   custom_colors:
-    primary: "#8c0327"
-    secondary: "#d85251"
-    success: "#2dd4bf"
-    danger: "#8c0327"
-    warning: "#f59e0b"
-    info: "#2563eb"
+    primary: "#4361ee"
+    secondary: "#805dca"
+    success: "#00ab55"
+    danger: "#e7515a"
+    warning: "#e2a03f"
+    info: "#2196f3"
 layout:
-  scheme: dark
+  scheme: light
   menu: vertical
   style: full
   direction: ltr
-  animation: ''
+  animation: animate__fadeIn
   navbar: navbar-sticky
   semidark: false
 logo:
   text: Template Base
-  image: "/assets/images/cuatropuntocero_logo_icon.PNG"
-  show_image: true
+  image: cuatropuntocero_logo.png
+  show_image: false
+  show_text: true

@@ -1,0 +1,36 @@
+<script>
+    (function () {
+        const glow = document.getElementById('cursor-glow');
+        if (!glow) return;
+
+        let targetX = window.innerWidth / 2;
+        let targetY = window.innerHeight / 2;
+        let currentX = targetX;
+        let currentY = targetY;
+        let rafId = null;
+
+        function place(x, y) {
+            glow.style.transform = 'translate3d(' + (x - glow.offsetWidth / 2) + 'px, ' + (y - glow.offsetHeight / 2) + 'px, 0)';
+        }
+
+        function animate() {
+            currentX += (targetX - currentX) * 0.12;
+            currentY += (targetY - currentY) * 0.12;
+            place(currentX, currentY);
+
+            if (Math.abs(targetX - currentX) > 0.5 || Math.abs(targetY - currentY) > 0.5) {
+                rafId = requestAnimationFrame(animate);
+            } else {
+                rafId = null;
+            }
+        }
+
+        place(currentX, currentY);
+
+        window.addEventListener('mousemove', function (e) {
+            targetX = e.clientX;
+            targetY = e.clientY;
+            if (!rafId) rafId = requestAnimationFrame(animate);
+        });
+    })();
+</script>

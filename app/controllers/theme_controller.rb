@@ -47,6 +47,7 @@ class ThemeController < ApplicationController
       current_config["logo"]["text"]       = params[:logo][:text]       if params[:logo].key?(:text)
       current_config["logo"]["image"]      = params[:logo][:image]      if params[:logo].key?(:image)
       current_config["logo"]["show_image"] = ActiveModel::Type::Boolean.new.cast(params[:logo][:show_image]) if params[:logo].key?(:show_image)
+      current_config["logo"]["show_text"]  = ActiveModel::Type::Boolean.new.cast(params[:logo][:show_text]) if params[:logo].key?(:show_text)
     end
 
     # Escribir archivo con header

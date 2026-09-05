@@ -1,0 +1,626 @@
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="/assets/css/admin-datatable.css?v=4">
+<link rel="stylesheet" type="text/css" href="/assets/css/sweetalert.css">
+
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('datatableMultiselectFilter', (selectId) => ({
+      open: false,
+      selected: [],
+
+      get summary() {
+        if (this.selected.length === 0) return 'Todos';
+        if (this.selected.length === 1) return this.selected[0];
+        return `${this.selected.length} seleccionados`;
+      },
+
+      toggle(value) {
+        if (this.selected.includes(value)) {
+          this.selected = this.selected.filter((item) => item !== value);
+        } else {
+          this.selected.push(value);
+        }
+        this.syncSelect();
+      },
+
+      clear() {
+        this.selected = [];
+        this.syncSelect();
+        this.open = false;
+      },
+
+      syncSelect() {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        Array.from(select.options).forEach((option) => {
+          option.selected = this.selected.includes(option.value);
+        });
+
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        document.dispatchEvent(new CustomEvent('datatable-filter-change'));
+      }
+    }));
+  });
+
+  window.AdminDatatable = {
+    dom: 'rt<"datatable-bottom"lip>',
+    lengthMenu: [[10, 20, 30, 50, 100], [10, 20, 30, 50, 100]],
+    pageLength: 10,
+    language: {
+      processing: 'Procesando...',
+      lengthMenu: 'Mostrar _MENU_ registros',
+      zeroRecords: 'No se encontraron resultados',
+      emptyTable: 'Ningún dato disponible en esta tabla',
+      info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+      infoEmpty: 'Mostrando registros del 0 al 0 de un total de 0 registros',
+      infoFiltered: '(filtrado de un total de _MAX_ registros)',
+      search: 'Buscar:',
+      loadingRecords: 'Cargando...',
+      paginate: {
+        first: 'Primero',
+        last: 'Último',
+        next: 'Siguiente',
+        previous: 'Anterior'
+      },
+      aria: {
+        sortAscending: ': Activar para ordenar la columna de manera ascendente',
+        sortDescending: ': Activar para ordenar la columna de manera descendente'
+      }
+    },
+
+    tableDefaults: {
+      autoWidth: false,
+      scrollX: false,
+      init: function() {
+        AdminDatatable.setupSearch(`#${this.api().table().node().id}`);
+      }
+    },
+
+    recordModalMixin(errorsId) {
+      return {
+        recordModalOpen: false,
+        recordModalTitle: '',
+        recordModalBadge: '',
+        recordModalBadgeNote: '',
+
+        closeRecordModal() {
+          this.recordModalOpen = false;
+          this.recordModalTitle = '';
+          this.recordModalBadge = '';
+          this.recordModalBadgeNote = '';
+          AdminDatatable.showFormErrors(errorsId, []);
+          const body = document.getElementById('record-modal-body');
+          if (body) body.innerHTML = '';
+        }
+      };
+    },
+
+    setupSearch(tableSelector) {
+      const $panel = $(tableSelector).closest('.panel');
+      const $input = $panel.find('.datatable-search-input');
+      if (!$input.length) return;
+
+      let debounceTimer;
+      $input.off('.datatableSearch').on('input.datatableSearch', function() {
+        const api = $(tableSelector).DataTable();
+        window.clearTimeout(debounceTimer);
+        debounceTimer = window.setTimeout(() => {
+          api.search($input.val()).draw();
+        }, 250);
+      });
+    },
+
+    initComplete(api) {
+      this.setupSearch(`#${api.table().node().id}`);
+    },
+
+    setupFilters(tableSelector) {
+      const reloadTable = () => {
+        const table = $(tableSelector).DataTable();
+        if (table) table.ajax.reload();
+      };
+
+      document.addEventListener('datatable-filter-change', reloadTable);
+
+      $('.datatable-toolbar .select2.datatable-filter-input').on('change', reloadTable);
+
+      $('.datatable-filter-clear-btn').on('click', function() {
+        const filterId = $(this).data('filterId');
+        const $filter = $(`#${filterId}`);
+        $filter.val(null).trigger('change');
+      });
+
+      $('#clearFilters').on('click', () => {
+        $('#datatable-filters select').val(null).trigger('change');
+        reloadTable();
+      });
+    },
+
+    bindDeleteActions() {
+      $(document)
+        .off('click.adminDatatableDelete', '.datatable-action-delete')
+        .on('click.adminDatatableDelete', '.datatable-action-delete', function(event) {
+          event.preventDefault();
+
+          const link = this;
+          const confirmDelete = () => AdminDatatable.submitDeleteLink(link);
+
+          if (window.Swal?.fire) {
+            window.Swal.fire({
+              icon: 'warning',
+              title: '¿Estás seguro?',
+              text: 'No podrás revertir esta acción!',
+              showCancelButton: true,
+              confirmButtonText: 'Sí, eliminar',
+              cancelButtonText: 'Cancelar',
+              padding: '2em',
+              customClass: 'sweet-alerts'
+            }).then((result) => {
+              if (result.isConfirmed) confirmDelete();
+            });
+            return;
+          }
+
+          if (window.confirm('¿Estás seguro?')) confirmDelete();
+        });
+    },
+
+    submitDeleteLink(link) {
+      const url = link.getAttribute('href');
+      if (!url) return;
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = url;
+      form.style.display = 'none';
+
+      const methodInput = document.createElement('input');
+      methodInput.type = 'hidden';
+      methodInput.name = '_method';
+      methodInput.value = 'delete';
+      form.appendChild(methodInput);
+
+      const tokenInput = document.createElement('input');
+      tokenInput.type = 'hidden';
+      tokenInput.name = 'authenticity_token';
+      tokenInput.value = csrfToken;
+      form.appendChild(tokenInput);
+
+      document.body.appendChild(form);
+      form.submit();
+    },
+
+    bindRecordActions(tableSelector, { errorsId }) {
+      const getAlpineComponent = () => {
+        const root = document.querySelector(tableSelector)?.closest('[x-data]');
+        return root && window.Alpine ? Alpine.$data(root) : null;
+      };
+
+      const openModal = async (url) => {
+        const alpineComponent = getAlpineComponent();
+        if (!alpineComponent) return;
+
+        AdminDatatable.showFormErrors(errorsId, []);
+
+        try {
+          const response = await fetch(url, {
+            headers: {
+              Accept: 'application/json',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
+            credentials: 'same-origin'
+          });
+
+          if (!response.ok) {
+            throw new Error('request failed');
+          }
+
+          const data = await response.json();
+          const body = document.getElementById('record-modal-body');
+          body.innerHTML = data.html;
+          if (window.Alpine) {
+            Alpine.initTree(body);
+          }
+          alpineComponent.recordModalTitle = data.title;
+          alpineComponent.recordModalBadge = data.title_badge || '';
+          alpineComponent.recordModalBadgeNote = data.title_badge_note || '';
+          alpineComponent.recordModalOpen = true;
+
+          const form = document.querySelector('#record-modal-body form[data-modal-form="true"]');
+          if (form) {
+            AdminDatatable.bindModalForm(`#${form.id}`, {
+              onSuccess: () => {
+                alpineComponent.closeRecordModal();
+                AdminDatatable.reload(tableSelector);
+              },
+              onError: (payload) => {
+                AdminDatatable.applyVecinoServerErrors(form, payload, errorsId);
+              }
+            });
+          }
+        } catch (_error) {
+          AdminDatatable.showFormErrors(errorsId, ['No se pudo cargar el registro.']);
+        }
+      };
+
+      const tableEvents = `click.adminDatatable${tableSelector.replace('#', '')}`;
+
+      $(document)
+        .off(tableEvents, `${tableSelector} .datatable-action-show, ${tableSelector} .datatable-action-edit`)
+        .on(tableEvents, `${tableSelector} .datatable-action-show, ${tableSelector} .datatable-action-edit`, function(event) {
+          event.preventDefault();
+          openModal(this.dataset.url);
+        });
+
+      $(document)
+        .off('click.recordModal', '#record-modal-body .datatable-action-edit')
+        .on('click.recordModal', '#record-modal-body .datatable-action-edit', function(event) {
+          event.preventDefault();
+          openModal(this.dataset.url);
+        });
+    },
+
+    reload(tableSelector) {
+      const table = $(tableSelector).DataTable();
+      if (table && table.settings()[0].ajax) {
+        table.ajax.reload(null, false);
+      } else {
+        window.location.reload();
+      }
+    },
+
+    initRowDropdowns(tableSelector) {
+      const closeMenus = () => {
+        document.querySelectorAll(`${tableSelector} .datatable-row-dropdown-menu`).forEach((menu) => {
+          menu.classList.add('hidden');
+          menu.style.display = 'none';
+        });
+      };
+
+      const positionMenu = (button, menu) => {
+        const rect = button.getBoundingClientRect();
+        const menuHeight = menu.offsetHeight || 0;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUpward = spaceBelow < menuHeight + 8 && rect.top > spaceBelow;
+
+        menu.style.position = 'fixed';
+        menu.style.zIndex = '10050';
+        menu.style.top = openUpward
+          ? `${rect.top - menuHeight - 4}px`
+          : `${rect.bottom + 4}px`;
+        menu.style.left = `${rect.right - menu.offsetWidth}px`;
+        menu.style.right = 'auto';
+        menu.style.marginTop = '0';
+      };
+
+      document.querySelectorAll(`${tableSelector} tbody .datatable-row-dropdown`).forEach((dropdown) => {
+        if (dropdown.dataset.dropdownBound === 'true') return;
+        dropdown.dataset.dropdownBound = 'true';
+
+        const button = dropdown.querySelector('.datatable-row-dropdown-trigger');
+        const menu = dropdown.querySelector('.datatable-row-dropdown-menu');
+        if (!button || !menu) return;
+
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const isOpen = !menu.classList.contains('hidden');
+          closeMenus();
+
+          if (!isOpen) {
+            menu.classList.remove('hidden');
+            menu.style.display = 'block';
+            positionMenu(button, menu);
+          }
+        });
+      });
+
+      if (!window.AdminDatatable._rowDropdownCloseBound) {
+        window.AdminDatatable._rowDropdownCloseBound = true;
+
+        document.addEventListener('click', (event) => {
+          if (event.target.closest('.datatable-row-dropdown')) return;
+          document.querySelectorAll('.datatable-row-dropdown-menu').forEach((menu) => {
+            menu.classList.add('hidden');
+            menu.style.display = 'none';
+          });
+        });
+
+        window.addEventListener('resize', () => {
+          document.querySelectorAll('.datatable-row-dropdown-menu').forEach((menu) => {
+            menu.classList.add('hidden');
+            menu.style.display = 'none';
+          });
+        });
+      }
+    },
+
+    isVecinoFieldRequired(field) {
+      if (!field) return false;
+      if (field.dataset.vecinoRequired !== undefined) return true;
+
+      const requiredWhen = field.dataset.vecinoRequiredWhen;
+      if (!requiredWhen) return false;
+
+      const alpineRoot = field.closest('.vecino-tabs-root');
+      const tipo = alpineRoot?._x_dataStack?.[0]?.tipoPropietario
+        || alpineRoot?.querySelector('[name="unidad[tipo_propietario]"]')?.value
+        || 'Persona física';
+
+      return tipo === requiredWhen;
+    },
+
+    isVecinoFieldInvalid(field) {
+      if (!field || field.disabled) return false;
+      if (!this.isFieldVisible(field) && field.dataset.vecinoRequiredWhen) return false;
+
+      const value = field.value.trim();
+      const required = this.isVecinoFieldRequired(field);
+
+      if (required && !value) return true;
+
+      if (field.type === 'number') {
+        if (required && !value) return true;
+        if (value) {
+          const num = Number(value);
+          if (Number.isNaN(num)) return true;
+          if (field.min !== '' && num < Number(field.min)) return true;
+          if (field.max !== '' && num > Number(field.max)) return true;
+        }
+      }
+
+      return false;
+    },
+
+    isFieldVisible(field) {
+      return field.getClientRects().length > 0;
+    },
+
+    clearVecinoFieldErrors(form) {
+      form.querySelectorAll('.vecino-field-error').forEach((el) => el.remove());
+      form.querySelectorAll('.vecino-field-invalid').forEach((el) => el.classList.remove('vecino-field-invalid'));
+    },
+
+    bindVecinoFieldValidation(form) {
+      if (form.dataset.vecinoValidationBound === 'true') return;
+      form.dataset.vecinoValidationBound = 'true';
+
+      form.querySelectorAll('[data-vecino-required], [data-vecino-required-when]').forEach((field) => {
+        field.addEventListener('input', () => {
+          if (field.dataset.vecinoCodigoTaken === 'true') return;
+
+          field.classList.remove('vecino-field-invalid');
+          if (field.nextElementSibling?.classList.contains('vecino-field-error')) {
+            field.nextElementSibling.remove();
+          }
+        });
+      });
+    },
+
+    reportVecinoFieldError(field, form, message = 'Completa este campo.') {
+      this.clearVecinoFieldErrors(form);
+
+      field.classList.add('vecino-field-invalid');
+      const error = document.createElement('p');
+      error.className = 'vecino-field-error';
+      error.textContent = message;
+      field.insertAdjacentElement('afterend', error);
+      field.focus({ preventScroll: true });
+    },
+
+    focusInvalidTabbedField(form) {
+      const tabFields = [
+        ['unidad[codigo_unidad]', 'upp'],
+        ['unidad[peso_voto]', 'upp'],
+        ['unidad[nombre_propietario]', 'condomino'],
+        ['unidad[razon_social_propietario]', 'condomino'],
+        ['unidad[fideicomisario]', 'condomino']
+      ];
+
+      const alpineRoot = form.closest('.vecino-tabs-root') || form.querySelector('.vecino-tabs-root');
+
+      const showFieldError = (field, tab, message) => {
+        const reportWhenVisible = (attempts = 0) => {
+          if (this.isFieldVisible(field) || attempts >= 30) {
+            this.reportVecinoFieldError(field, form, message);
+            return;
+          }
+          window.requestAnimationFrame(() => reportWhenVisible(attempts + 1));
+        };
+
+        if (alpineRoot?._x_dataStack && window.Alpine) {
+          Alpine.$data(alpineRoot).tab = tab;
+          if (typeof Alpine.nextTick === 'function') {
+            Alpine.nextTick(() => reportWhenVisible());
+          } else {
+            reportWhenVisible();
+          }
+        } else {
+          reportWhenVisible();
+        }
+      };
+
+      for (const [name, tab] of tabFields) {
+        const field = form.querySelector(`[name="${name}"]`);
+        if (!field) continue;
+
+        if (field.dataset.vecinoCodigoTaken === 'true') {
+          showFieldError(field, tab, 'Esta UPP ya existe.');
+          return true;
+        }
+
+        if (this.isVecinoFieldInvalid(field)) {
+          showFieldError(field, tab, 'Completa este campo.');
+          return true;
+        }
+      }
+
+      return false;
+    },
+
+    applyVecinoServerErrors(form, payload, bannerSelector) {
+      if (!form) {
+        this.showFormErrors(bannerSelector, payload?.errors || []);
+        return;
+      }
+
+      this.clearVecinoFieldErrors(form);
+
+      const fieldErrors = payload?.field_errors || {};
+      const tabByAttr = {
+        codigo_unidad: 'upp',
+        peso_voto: 'upp',
+        nombre_propietario: 'condomino',
+        razon_social_propietario: 'condomino',
+        fideicomisario: 'condomino'
+      };
+      const alpineRoot = form.closest('.vecino-tabs-root') || form.querySelector('.vecino-tabs-root');
+      let firstField = null;
+      let firstTab = null;
+      let applied = false;
+
+      Object.entries(fieldErrors).forEach(([attr, messages]) => {
+        const field = form.querySelector(`[name="unidad[${attr}]"]`);
+        if (!field || !messages?.length) return;
+
+        applied = true;
+        field.classList.add('vecino-field-invalid');
+        if (attr === 'codigo_unidad') {
+          field.dataset.vecinoCodigoTaken = 'true';
+        }
+
+        if (!field.nextElementSibling?.classList.contains('vecino-field-error')) {
+          const error = document.createElement('p');
+          error.className = 'vecino-field-error';
+          const isTaken = attr === 'codigo_unidad' && /ya existe|taken/i.test(messages[0] || '');
+          error.textContent = isTaken ? 'Esta UPP ya existe.' : messages[0];
+          field.insertAdjacentElement('afterend', error);
+        }
+
+        if (!firstField) {
+          firstField = field;
+          firstTab = tabByAttr[attr] || 'upp';
+        }
+      });
+
+      if (applied && firstField) {
+        this.showFormErrors(bannerSelector, []);
+        if (alpineRoot?._x_dataStack && window.Alpine && firstTab) {
+          Alpine.$data(alpineRoot).tab = firstTab;
+        }
+        firstField.focus({ preventScroll: true });
+        return;
+      }
+
+      this.showFormErrors(bannerSelector, payload?.errors || []);
+    },
+
+    validateForm(form) {
+      if (form.classList.contains('vecino-form')) {
+        this.bindVecinoFieldValidation(form);
+        return this.focusInvalidTabbedField(form);
+      }
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return true;
+      }
+
+      return false;
+    },
+
+    bindModalForm(formSelector, { onSuccess, onError }) {
+      const form = document.querySelector(formSelector);
+      if (!form) return;
+
+      if (form.classList.contains('vecino-form')) {
+        this.bindVecinoFieldValidation(form);
+      }
+
+      const handler = async (event) => {
+        event.preventDefault();
+
+        if (AdminDatatable.validateForm(form)) {
+          return;
+        }
+
+        const submitButton = form.querySelector('[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
+
+        try {
+          const response = await fetch(form.action, {
+            method: form.method.toUpperCase(),
+            body: new FormData(form),
+            headers: {
+              Accept: 'application/json',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
+            credentials: 'same-origin'
+          });
+
+          const payload = await response.json();
+
+          if (response.ok) {
+            if (onSuccess) onSuccess(payload);
+          } else if (onError) {
+            onError(payload);
+          }
+        } catch (_error) {
+          if (onError) {
+            onError({ errors: ['Ocurrió un error al guardar. Intenta de nuevo.'] });
+          }
+        } finally {
+          if (submitButton) submitButton.disabled = false;
+        }
+      };
+
+      form.removeEventListener('submit', form._adminDatatableSubmit);
+      form._adminDatatableSubmit = handler;
+      form.addEventListener('submit', handler);
+    },
+
+    showFormErrors(containerSelector, errors) {
+      const container = document.querySelector(containerSelector);
+      if (!container) return;
+
+      if (!errors || errors.length === 0) {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="flex items-center p-3.5 rounded text-danger bg-danger-light dark:bg-danger-dark-light mb-4">
+          <ul class="list-disc ltr:ml-5 rtl:mr-5">
+            ${errors.map((error) => `<li>${error}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+      container.classList.remove('hidden');
+    }
+  };
+
+  document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (!form.classList.contains('vecino-form')) return;
+    if (form._adminDatatableSubmit) return;
+
+    if (AdminDatatable.validateForm(form)) {
+      event.preventDefault();
+    }
+  }, true);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      AdminDatatable.bindDeleteActions();
+    });
+  } else {
+    AdminDatatable.bindDeleteActions();
+  }
+</script>

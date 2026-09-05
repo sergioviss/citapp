@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module ThemeHelper
+  DEFAULT_LOGO_IMAGE = "cuatropuntocero_logo.png"
   # Mapeo de temas predefinidos con sus colores
   COLOR_THEMES = {
     "default"   => { primary: "#4361ee", secondary: "#805dca", success: "#00ab55", danger: "#e7515a", warning: "#e2a03f", info: "#2196f3" },
@@ -58,16 +59,33 @@ module ThemeHelper
   # Genera un bloque <style> con CSS custom properties para los colores del tema activo
   def theme_css_variables_tag
     colors = active_theme_colors
+    primary_rgb = hex_to_rgb(colors[:primary]).join(", ")
     tag.style(<<~CSS, nonce: content_security_policy_nonce)
       :root {
         --color-primary: #{colors[:primary]};
+        --color-primary-rgb: #{primary_rgb};
         --color-secondary: #{colors[:secondary]};
         --color-success: #{colors[:success]};
         --color-danger: #{colors[:danger]};
         --color-warning: #{colors[:warning]};
         --color-info: #{colors[:info]};
+        --auth-on-primary: #{theme_on_primary_color};
       }
     CSS
+  end
+
+  def hex_to_rgb(hex)
+    value = hex.to_s.delete_prefix("#")
+    value = value.chars.map { |c| c * 2 }.join if value.match?(/\A\h{3}\z/i)
+    return [67, 97, 238] unless value.match?(/\A\h{6}\z/i)
+
+    value.scan(/../).map { |part| part.to_i(16) }
+  end
+
+  # Texto sobre el color primario (blanco o casi negro según luminancia)
+  def theme_on_primary_color
+    r, g, b = hex_to_rgb(active_theme_colors[:primary])
+    (0.299 * r + 0.587 * g + 0.114 * b) > 180 ? "#0e1726" : "#ffffff"
   end
 
   # Configuración de layout desde el archivo
@@ -82,9 +100,10 @@ module ThemeHelper
       navbar:    layout["navbar"]    || "navbar-sticky",
       semidark:  layout["semidark"]  || false,
       logo: {
-        text:       theme_config.dig("logo", "text")       || "VRISTO",
-        image:      theme_config.dig("logo", "image")      || "/assets/images/logo.svg",
-        show_image: theme_config.dig("logo", "show_image") != false
+        text:       theme_config.dig("logo", "text")       || "Template Base",
+        image:      theme_config.dig("logo", "image").presence || DEFAULT_LOGO_IMAGE,
+        show_image: theme_config.dig("logo", "show_image") != false,
+        show_text:  theme_config.dig("logo", "show_text") != false
       }
     }
   end
@@ -109,6 +128,52 @@ module ThemeHelper
   # Genera el atributo data-theme para el <html>
   def theme_data_attribute
     active_theme_preset
+  end
+
+  def theme_show_logo_text?
+    theme_layout_config.dig(:logo, :show_text) != false
+  end
+
+  def theme_app_name
+    theme_layout_config.dig(:logo, :text).presence || "Template Base"
+  end
+
+  def theme_logo_text
+    return unless theme_show_logo_text?
+
+    theme_app_name
+  end
+
+  def document_title
+    page = content_for(:title).presence || @page_title.presence
+    [page, theme_app_name].compact.uniq.join(" — ")
+  end
+
+  def document_page_title
+    content_for(:title).presence || @page_title.presence
+  end
+
+  def theme_logo_image_src
+    return unless theme_layout_config.dig(:logo, :show_image)
+
+    resolve_theme_logo_path
+  end
+
+  def resolve_theme_logo_path
+    src = theme_layout_config.dig(:logo, :image).to_s.strip.tr("\\", "/")
+    src = DEFAULT_LOGO_IMAGE if src.blank?
+
+    public_relative = src.delete_prefix("/")
+    public_file = Rails.root.join("public", public_relative)
+    return "/#{public_relative}" if File.exist?(public_file)
+
+    filename = File.basename(src)
+    [filename, DEFAULT_LOGO_IMAGE].uniq.each do |name|
+      asset_file = Rails.root.join("app/assets/images", name)
+      return image_path(name) if File.exist?(asset_file)
+    end
+
+    src if src.start_with?("/", "http://", "https://")
   end
 
   # Devuelve todos los temas disponibles como JSON para el customizer

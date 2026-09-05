@@ -1,45 +1,30 @@
-    <div class="flex items-center justify-between mb-5">
-            <h5 class="font-semibold text-2xl dark:text-white-light">Mi cuenta</h5>
-            <div class="ltr:before:mr-1 rtl:before:ml-1">
-  
-  </div>
+<% content_for :title, "Cambiar contraseña" %>
+
+<%= render "devise/shared/auth_shell", title: "Cambiar contraseña", subtitle: "Elige una contraseña nueva para tu cuenta" do %>
+    <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }, class: "mt-8 dark:text-white") do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+        <%= f.hidden_field :reset_password_token %>
+
+        <div>
+            <label for="user_password" class="auth-label font-semibold">Nueva contraseña</label>
+            <div class="relative text-white-dark">
+                <%= f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-input ps-10 placeholder:text-white-dark", placeholder: "Ingresa tu nueva contraseña", minlength: @minimum_password_length %>
+                <%= render "devise/shared/password_icon" %>
+            </div>
+            <% if @minimum_password_length %>
+                <p class="mt-1 text-xs text-white-dark">Mínimo <%= @minimum_password_length %> caracteres</p>
+            <% end %>
         </div>
-<div class="panel lg:row-start-3 lg:col-start-2">
-  <div class="flex items-center justify-between mb-5">
-     <h5 class="font-semibold text-lg dark:text-white-light"> <%= @title %></h5>
+        <div style="margin-top: 1.15rem;">
+            <label for="user_password_confirmation" class="auth-label font-semibold">Confirmar contraseña</label>
+            <div class="relative text-white-dark">
+                <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-input ps-10 placeholder:text-white-dark", placeholder: "Confirma tu nueva contraseña" %>
+                <%= render "devise/shared/password_icon" %>
+            </div>
+        </div>
 
-  </div>
-  
-  <div class="mb-5">
-    <%= render 'form', user: @user %>
-
-  </div>
-
-
-
-</div>
-<h2>Change your password</h2>
-
-<%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
-  <%= f.hidden_field :reset_password_token %>
-
-  <div class="field">
-    <%= f.label :password, "New password" %><br />
-    <% if @minimum_password_length %>
-      <em>(<%= @minimum_password_length %> characters minimum)</em><br />
+        <button type="submit" class="auth-submit !mt-6 w-full rounded-md border-0 py-3 text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:opacity-90 hover:shadow-lg">
+            Guardar contraseña
+        </button>
     <% end %>
-    <%= f.password_field :password, autofocus: true, autocomplete: "new-password" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :password_confirmation, "Confirm new password" %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Change my password" %>
-  </div>
 <% end %>
-
-<%= render "devise/shared/links" %>
