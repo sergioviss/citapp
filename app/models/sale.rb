@@ -15,6 +15,8 @@ class Sale < ApplicationRecord
 
   validates :currency, presence: true, format: { with: /\A[A-Z]{3}\z/ }
   validates :appointment_id, uniqueness: true, allow_nil: true
+  validates :discount_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+  validates :exchange_rate, numericality: { greater_than: 0, less_than: 1_000_000 }, allow_nil: true
   validates :subtotal, :discount_total, :tax_total, :total, numericality: { greater_than_or_equal_to: 0 }
 
   before_validation :sync_total_from_components

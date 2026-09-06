@@ -169,10 +169,12 @@ CREATE TABLE public.business_settings (
     name text NOT NULL,
     time_zone text DEFAULT 'UTC'::text NOT NULL,
     currency character varying(3) DEFAULT 'MXN'::character varying NOT NULL,
+    usd_exchange_rate numeric(12,6),
     CONSTRAINT business_settings_currency_format CHECK (((currency)::text ~ '^[A-Z]{3}$'::text)),
     CONSTRAINT business_settings_name_present CHECK ((btrim(name) <> ''::text)),
     CONSTRAINT business_settings_singleton CHECK ((id = 1)),
-    CONSTRAINT business_settings_time_zone_present CHECK ((btrim(time_zone) <> ''::text))
+    CONSTRAINT business_settings_time_zone_present CHECK ((btrim(time_zone) <> ''::text)),
+    CONSTRAINT settings_exchange_rate_positive CHECK (((usd_exchange_rate > (0)::numeric) AND (usd_exchange_rate < 'Infinity'::numeric)))
 );
 
 
@@ -622,6 +624,7 @@ CREATE TABLE public.sale_items (
     tax_rate numeric(7,6) DEFAULT 0.0 NOT NULL,
     tax_amount numeric(14,2) DEFAULT 0.0 NOT NULL,
     total numeric(14,2) NOT NULL,
+    employee_id bigint,
     CONSTRAINT sale_items_description_quantity CHECK (((btrim(description) <> ''::text) AND (quantity > 0))),
     CONSTRAINT sale_items_discount_range CHECK (((discount_amount >= (0)::numeric) AND (discount_amount <= ((quantity)::numeric * unit_price)))),
     CONSTRAINT sale_items_tax_arithmetic CHECK ((tax_amount = round(((((quantity)::numeric * unit_price) - discount_amount) * tax_rate), 2))),
@@ -703,8 +706,13 @@ CREATE TABLE public.sales (
     notes text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    exchange_rate numeric(12,6),
+    discount_percent numeric(5,2) DEFAULT 0.0 NOT NULL,
+    checkout_key uuid,
     CONSTRAINT sales_currency_format CHECK (((currency)::text ~ '^[A-Z]{3}$'::text)),
+    CONSTRAINT sales_discount_percent_range CHECK (((discount_percent >= (0)::numeric) AND (discount_percent <= (100)::numeric))),
     CONSTRAINT sales_discount_range CHECK (((discount_total >= (0)::numeric) AND (discount_total <= subtotal))),
+    CONSTRAINT sales_exchange_rate_positive CHECK (((exchange_rate > (0)::numeric) AND (exchange_rate < 'Infinity'::numeric))),
     CONSTRAINT sales_status_allowed CHECK ((status = ANY (ARRAY['draft'::text, 'posted'::text, 'cancelled'::text]))),
     CONSTRAINT sales_subtotal_range CHECK (((subtotal >= (0)::numeric) AND (subtotal < 'Infinity'::numeric))),
     CONSTRAINT sales_tax_range CHECK (((tax_total >= (0)::numeric) AND (tax_total < 'Infinity'::numeric))),
@@ -1221,6 +1229,13 @@ CREATE INDEX index_appointments_on_employee_id_and_starts_at ON public.appointme
 
 
 --
+-- Name: index_appointments_on_id_and_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_appointments_on_id_and_client_id ON public.appointments USING btree (id, client_id);
+
+
+--
 -- Name: index_appointments_on_id_and_client_id_and_currency; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1375,6 +1390,13 @@ CREATE UNIQUE INDEX index_sale_items_on_appointment_service_id ON public.sale_it
 
 
 --
+-- Name: index_sale_items_on_employee_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sale_items_on_employee_id ON public.sale_items USING btree (employee_id);
+
+
+--
 -- Name: index_sale_items_on_sale_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1393,6 +1415,13 @@ CREATE INDEX index_sale_items_on_service_id ON public.sale_items USING btree (se
 --
 
 CREATE UNIQUE INDEX index_sales_on_appointment_id ON public.sales USING btree (appointment_id);
+
+
+--
+-- Name: index_sales_on_checkout_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_sales_on_checkout_key ON public.sales USING btree (checkout_key);
 
 
 --
@@ -1497,6 +1526,14 @@ ALTER TABLE ONLY public.payments
 
 ALTER TABLE ONLY public.employee_services
     ADD CONSTRAINT fk_rails_0498cac763 FOREIGN KEY (service_id) REFERENCES public.services(id) DEFERRABLE;
+
+
+--
+-- Name: sale_items fk_rails_0a13c028cc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sale_items
+    ADD CONSTRAINT fk_rails_0a13c028cc FOREIGN KEY (employee_id) REFERENCES public.employees(id) DEFERRABLE;
 
 
 --
@@ -1668,11 +1705,11 @@ ALTER TABLE ONLY public.employee_services
 
 
 --
--- Name: sales fk_sales_appointment_client_currency; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: sales fk_sales_appointment_client; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sales
-    ADD CONSTRAINT fk_sales_appointment_client_currency FOREIGN KEY (appointment_id, client_id, currency) REFERENCES public.appointments(id, client_id, currency) DEFERRABLE;
+    ADD CONSTRAINT fk_sales_appointment_client FOREIGN KEY (appointment_id, client_id) REFERENCES public.appointments(id, client_id) DEFERRABLE;
 
 
 --
@@ -1682,6 +1719,8 @@ ALTER TABLE ONLY public.sales
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260906130000'),
+('20260906120000'),
 ('20260905120500'),
 ('20260905120400'),
 ('20260905120300'),

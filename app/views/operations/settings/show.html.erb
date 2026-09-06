@@ -7,6 +7,9 @@
         <%= f.label :name, 'Nombre del negocio' %><%= f.text_field :name, required: true %>
         <div class="fields"><div><%= f.label :time_zone, 'Zona horaria IANA' %><%= f.text_field :time_zone, required: true, list: 'iana-zones' %></div>
           <div><%= f.label :currency, 'Moneda ISO' %><%= f.text_field :currency, required: true, pattern: '[A-Z]{3}', maxlength: 3 %></div></div>
+        <%= f.label :usd_exchange_rate, 'Tipo de cambio (pesos por 1 USD)' %>
+        <%= f.number_field :usd_exchange_rate, min: '0.000001', max: '999999.999999', step: '0.000001', placeholder: 'Ej. 18.50' %>
+        <p class="muted">Necesario para convertir entre pesos y dólares. Cada venta conserva el tipo de cambio utilizado.</p>
         <datalist id="iana-zones"><% TZInfo::Timezone.all_identifiers.each do |zone| %><option value="<%= zone %>"><% end %></datalist>
         <p class="muted">La zona horaria y moneda solo pueden cambiarse antes de registrar horarios, servicios u operaciones.</p>
         <% if can?(:update, @settings) %><%= f.submit 'Guardar configuración', class: 'btn btn-primary' %><% end %>

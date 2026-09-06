@@ -51,6 +51,9 @@ module Payments
           raise Domain::ValidationError, "El intento fue rechazado por la pasarela; utiliza una nueva clave" if attempt.failed?
           next attempt
         end
+        if record.checkout_key.present?
+          raise Domain::ValidationError, "Los cobros se registran únicamente al crear la venta"
+        end
         raise Domain::ValidationError, "No se pueden registrar cobros en una venta cancelada" if record.cancelled?
         raise Domain::ValidationError, "El cobro supera el saldo disponible" if amount > record.available_to_collect
 

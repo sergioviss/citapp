@@ -2,7 +2,7 @@
 
 module Sales
   class SaveDraft < ApplicationService
-    def initialize(actor:, client_id: nil, new_client: nil, appointment_id: nil, notes: nil, items:, sale: nil)
+    def initialize(actor:, client_id: nil, new_client: nil, appointment_id: nil, notes: nil, items:, sale: nil, currency: nil, exchange_rate: nil, discount_percent: nil)
       @actor = actor
       @client_id = client_id
       @new_client = new_client
@@ -10,6 +10,9 @@ module Sales
       @notes = notes
       @items = items
       @sale = sale
+      @currency = currency
+      @exchange_rate = exchange_rate
+      @discount_percent = discount_percent
     end
 
     def call
@@ -31,11 +34,11 @@ module Sales
         else
           client = Client.find(client_id)
         end
-        currency = appointment&.currency || business_settings.currency
+        currency = @currency || appointment&.currency || business_settings.currency
+        @source_currency = appointment&.currency || business_settings.currency
 
         if appointment
           raise Domain::ValidationError, "La venta debe usar el cliente de la cita" unless client.id == appointment.client_id
-          raise Domain::ValidationError, "La venta debe usar la moneda de la cita" unless currency == appointment.currency
         end
 
         record.assign_attributes(
@@ -44,6 +47,8 @@ module Sales
           created_by: record.created_by || actor,
           currency: currency,
           notes: notes,
+          exchange_rate: @exchange_rate,
+          discount_percent: @discount_percent || 0,
           status: "draft"
         )
         record.save!
@@ -72,16 +77,25 @@ module Sales
         raise Domain::ValidationError, "El servicio no está disponible para nuevas ventas"
       end
       unit_price = item.key?(:unit_price) ? item[:unit_price] : snapshot_price(service, appointment_service)
+      if !item.key?(:unit_price) && @currency && @currency != @source_currency
+        unit_price = @source_currency == "MXN" ? MoneyMath.decimal(unit_price) / @exchange_rate : MoneyMath.decimal(unit_price) * @exchange_rate
+        unit_price = unit_price.round(2)
+      end
+      discount = item[:discount_amount] || 0
+      unless @discount_percent.nil?
+        discount = (MoneyMath.decimal(unit_price) * MoneyMath.decimal(item[:quantity] || 1) * @discount_percent / 100).round(2)
+      end
       description = item[:description].presence || appointment_service&.service_name || service.name
 
       {
         service: service,
         appointment_service: appointment_service,
+        employee_id: item[:employee_id].presence || appointment_service&.appointment&.employee_id,
         description: description,
         quantity: item[:quantity] || 1,
         unit_price: unit_price,
-        discount_amount: item[:discount_amount] || 0,
-        tax_rate: item[:tax_rate] || 0
+        discount_amount: discount,
+        tax_rate: 0
       }
     end
 

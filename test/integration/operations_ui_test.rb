@@ -77,17 +77,38 @@ class OperationsUiTest < ActionDispatch::IntegrationTest
     assert_equal [ @service.id ], response.parsed_body.map { |service| service["id"] }
   end
 
+  test "POS fixes catalog prices and records the employee who attended each service" do
+    get new_operations_sale_path
+    assert_response :success
+    assert_select "th", "Atendió"
+    assert_select "input[aria-label^='Precio de']", count: 0
+
+    post operations_sales_path, params: { sale: {
+      client_id: @client.id,
+      checkout_key: SecureRandom.uuid,
+      payments: [ { method: "cash", amount: "120.50" } ],
+      items: [ { service_id: @service.id, employee_id: @employee.id, unit_price: "1.00" } ]
+    } }, as: :json
+
+    assert_response :created
+    item = Sale.find(response.parsed_body.fetch("id")).sale_items.first
+    assert_equal @employee, item.employee
+    assert_equal BigDecimal("120.50"), item.unit_price
+  end
+
   test "POS creates a client and sale together and calculates totals on the server" do
     assert_difference [ "Client.count", "Sale.count" ], 1 do
       post operations_sales_path, params: { sale: {
         new_client: { name: "Cliente del mostrador", phone: "6625551234" },
-        items: [ { service_id: @service.id, quantity: 2, unit_price: "120.50", discount_amount: "1.00", tax_rate: "0.16" } ]
+        discount_percent: 10, payments: [ { method: "cash", amount: "300.00" } ],
+        items: [ { service_id: @service.id, quantity: 2, unit_price: "120.50", tax_rate: "0.16" } ]
       } }, as: :json
       assert_response :created
     end
     sale = Sale.find(response.parsed_body["id"])
     assert_equal "Cliente del mostrador", sale.client.name
-    assert_equal BigDecimal("278.40"), sale.total
+    assert_equal BigDecimal("216.90"), sale.total
+    assert_equal BigDecimal("0.00"), sale.tax_total
     assert_equal operations_sale_path(sale), response.headers["Location"]
   end
 

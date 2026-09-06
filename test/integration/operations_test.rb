@@ -18,18 +18,16 @@ class OperationsTest < ActionDispatch::IntegrationTest
     } }, as: :json
     assert_response :created
     appointment_id = response.parsed_body.fetch("id")
-    post from_appointment_api_v1_sales_path, params: { appointment_id: appointment_id }, as: :json
+    post from_appointment_api_v1_sales_path, params: { appointment_id: appointment_id,
+      sale: { payments: [ { method: "cash", amount: "150.00" } ] } }, as: :json
     assert_response :created
     sale_id = response.parsed_body.fetch("id")
-    post publish_api_v1_sale_path(sale_id), as: :json
-    assert_response :success
-    key = SecureRandom.uuid
-    request = { payment: { amount: "100.00", method: "cash", tendered_amount: "150.00", idempotency_key: key } }
-    post api_v1_sale_payments_path(sale_id), params: request, as: :json
-    assert_response :created
-    payment_id = response.parsed_body.fetch("id")
-    post api_v1_sale_payments_path(sale_id), params: request, as: :json
-    assert_equal payment_id, response.parsed_body.fetch("id")
+    assert Sale.find(sale_id).posted?
+    payment_id = Sale.find(sale_id).payments.sole.id
+    post api_v1_sale_payments_path(sale_id), params: { payment: {
+      amount: "100.00", method: "cash", tendered_amount: "150.00", idempotency_key: SecureRandom.uuid
+    } }, as: :json
+    assert_response :unprocessable_entity
     assert_equal 1, Payment.where(sale_id: sale_id).count
     assert_equal 0, SaleBalance.find(sale_id).balance
     post cancel_api_v1_sale_path(sale_id), as: :json
@@ -63,13 +61,13 @@ class OperationsTest < ActionDispatch::IntegrationTest
     assert_select "th", "Empleado"
     assert_select "th", "Acciones"
     assert_select "th", text: "Estado", count: 0
-    post operations_sales_path, params: { sale: { client_id: @client.id,
+    post operations_sales_path, params: { sale: { client_id: @client.id, payments: [ { method: "cash", amount: 100 } ],
       items: { "0" => { service_id: @service.id, quantity: 1, unit_price: "" } } } }
     assert_response :see_other
     follow_redirect!
     assert_response :success
     assert_select "h1", /Venta #/
-    assert_select "form[action=?]", operations_sale_payments_path(Sale.last)
+    assert_select "form[action=?]", operations_sale_payments_path(Sale.last), count: 0
   end
 
   test "weekly hours form preserves 24:00 through HTTP and PostgreSQL" do

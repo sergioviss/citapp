@@ -7,6 +7,7 @@ class Employee < ApplicationRecord
   has_many :employee_working_hours, dependent: :destroy
   has_many :employee_time_offs, dependent: :destroy
   has_many :appointments, dependent: :restrict_with_error
+  has_many :sale_items, dependent: :restrict_with_error
 
   validates :name, presence: true
   validates :user_id, uniqueness: true, allow_nil: true

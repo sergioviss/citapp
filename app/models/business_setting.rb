@@ -5,6 +5,7 @@ class BusinessSetting < ApplicationRecord
 
   validates :id, inclusion: { in: [ SINGLETON_ID ] }
   validates :name, presence: true
+  validates :usd_exchange_rate, numericality: { greater_than: 0, less_than: 1_000_000 }, allow_nil: true
   validates :time_zone, presence: true
   validates :currency, presence: true, format: { with: /\A[A-Z]{3}\z/ }
   validate :time_zone_must_be_iana

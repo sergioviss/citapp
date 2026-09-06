@@ -105,7 +105,7 @@ if ENV["SEED_DEMO_DATA"] == "true"
 
     draft = Sale.find_by(notes: "Venta demo pendiente") || Sales::SaveDraft.call(actor: actor,
       client_id: clients.fetch("Sofía Ramírez").id, notes: "Venta demo pendiente",
-      items: [ { service_id: services.fetch("Masaje relajante").id, quantity: 1, tax_rate: "0.16" } ])
+      items: [ { service_id: services.fetch("Masaje relajante").id, quantity: 1 } ])
 
     Payment.find_or_create_by!(idempotency_key: "11111111-1111-4111-8111-111111111111") do |payment|
       payment.assign_attributes(sale: appointment_sale, registered_by: actor, kind: "receipt", method: "cash",

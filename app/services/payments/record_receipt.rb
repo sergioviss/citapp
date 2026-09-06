@@ -22,6 +22,9 @@ module Payments
         raise Domain::IdempotencyConflict, "La clave de idempotencia ya se usó en otra operación" if existing
 
         reject_reserved_key!
+        if record.checkout_key.present? && !record.draft?
+          raise Domain::ValidationError, "Los cobros se registran únicamente al crear la venta"
+        end
         raise Domain::ValidationError, "No se pueden registrar cobros en una venta cancelada" if record.cancelled?
 
         balance = record.available_to_collect

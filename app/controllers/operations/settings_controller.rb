@@ -10,7 +10,7 @@ module Operations
     def update
       record = BusinessSetting.current!
       allowed! :update, record
-      data = params.require(:business_setting).permit(:name, :time_zone, :currency)
+      data = params.require(:business_setting).permit(:name, :time_zone, :currency, :usd_exchange_rate)
       record.with_lock do
         changing = (data[:time_zone].present? && data[:time_zone] != record.time_zone) ||
           (data[:currency].present? && data[:currency] != record.currency)

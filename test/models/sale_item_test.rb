@@ -16,7 +16,8 @@ class SaleItemTest < ActiveSupport::TestCase
       tax_rate: 0.16
     )
 
-    assert_equal BigDecimal("28.80"), item.tax_amount
-    assert_equal BigDecimal("208.80"), item.total
+    assert_equal BigDecimal("0"), item.tax_rate
+    assert_equal BigDecimal("0.00"), item.tax_amount
+    assert_equal BigDecimal("180.00"), item.total
   end
 end

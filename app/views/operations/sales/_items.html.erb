@@ -1,4 +1,4 @@
-<p class="muted">Precios antes de impuestos. Un impuesto de 0.16 corresponde al 16 %. El descuento aplica a toda la partida. Deja el servicio vacío para omitir una fila.</p>
+<p class="muted">El descuento aplica a toda la partida. Deja el servicio vacío para omitir una fila.</p>
 <% (items.to_a + [nil, nil]).each_with_index do |item, index| %>
   <% prefix = "sale[items][#{index}]" %>
   <div class="fields">
@@ -6,7 +6,6 @@
     <div><%= label_tag "line_quantity_#{index}", "Cantidad" %><%= number_field_tag "#{prefix}[quantity]", item&.quantity || 1, min: 1, id: "line_quantity_#{index}" %></div>
     <div><%= label_tag "line_price_#{index}", "Precio unitario" %><%= number_field_tag "#{prefix}[unit_price]", item&.unit_price, min: 0, step: "0.01", placeholder: "Precio del catálogo", id: "line_price_#{index}" %></div>
     <div><%= label_tag "line_discount_#{index}", "Descuento" %><%= number_field_tag "#{prefix}[discount_amount]", item&.discount_amount || 0, min: 0, step: "0.01", id: "line_discount_#{index}" %></div>
-    <div><%= label_tag "line_tax_#{index}", "Impuesto" %><%= number_field_tag "#{prefix}[tax_rate]", item&.tax_rate || 0, min: 0, max: 1, step: "0.000001", id: "line_tax_#{index}" %></div>
     <% if item&.appointment_service_id %><%= hidden_field_tag "#{prefix}[appointment_service_id]", item.appointment_service_id %><% end %>
   </div>
 <% end %>

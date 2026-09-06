@@ -4,6 +4,7 @@ class SaleItem < ApplicationRecord
   belongs_to :sale, inverse_of: :sale_items
   belongs_to :service
   belongs_to :appointment_service, optional: true
+  belongs_to :employee, optional: true
 
   validates :description, presence: true
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }
@@ -13,6 +14,7 @@ class SaleItem < ApplicationRecord
   validates :appointment_service_id, uniqueness: true, allow_nil: true
   validate :discount_within_line
   validate :appointment_service_matches_sale
+  validate :employee_is_active
 
   before_validation :apply_line_arithmetic
   before_save :protect_posted_sale
@@ -21,13 +23,14 @@ class SaleItem < ApplicationRecord
   private
 
   def apply_line_arithmetic
-    return if quantity.blank? || unit_price.blank? || discount_amount.blank? || tax_rate.blank?
+    self.tax_rate = 0
+    return if quantity.blank? || unit_price.blank? || discount_amount.blank?
 
     amounts = MoneyMath.line_amounts(
       quantity: quantity,
       unit_price: unit_price,
       discount_amount: discount_amount,
-      tax_rate: tax_rate
+      tax_rate: 0
     )
     self.tax_amount = amounts[:tax_amount]
     self.total = amounts[:total]
@@ -57,6 +60,12 @@ class SaleItem < ApplicationRecord
     if appointment_service.service_id != service_id
       errors.add(:appointment_service_id, "debe corresponder al mismo servicio")
     end
+  end
+
+  def employee_is_active
+    return if employee.blank?
+
+    errors.add(:employee, "debe estar activo") unless employee.active?
   end
 
   def protect_posted_sale

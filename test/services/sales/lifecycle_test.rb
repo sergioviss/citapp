@@ -19,8 +19,8 @@ class Sales::LifecycleTest < ActiveSupport::TestCase
     assert published.posted?
     assert_equal BigDecimal("200.00"), published.subtotal
     assert_equal BigDecimal("20.00"), published.discount_total
-    assert_equal BigDecimal("28.80"), published.tax_total
-    assert_equal BigDecimal("208.80"), published.total
+    assert_equal BigDecimal("0.00"), published.tax_total
+    assert_equal BigDecimal("180.00"), published.total
   end
 
   test "posted sales and items are immutable" do
