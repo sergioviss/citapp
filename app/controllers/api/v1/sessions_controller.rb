@@ -10,7 +10,7 @@ module Api
       def create
         user = User.find_by(email: session_params[:email].to_s.downcase.strip)
 
-        if user&.valid_password?(session_params[:password])
+        if user&.valid_password?(session_params[:password]) && user.active_for_authentication?
           sign_in(user)
           render json: { success: true, user: user_json(user) }, status: :ok
         else
@@ -37,7 +37,9 @@ module Api
           id: user.id,
           email: user.email,
           full_name: user.full_name,
-          rol_name: user.rol_name
+          rol_name: user.role_name,
+          role_name: user.role_name,
+          role_code: user.role_code
         }
       end
     end

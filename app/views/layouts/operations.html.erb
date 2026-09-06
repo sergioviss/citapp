@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operación · Citapp</title>
+  <%= csrf_meta_tags %>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f5f6fa;color:#1e293b;font:15px/1.5 system-ui,sans-serif}header{background:#fff;border-bottom:1px solid #dce2eb;padding:18px 5%;display:flex;align-items:center;gap:24px;flex-wrap:wrap}a{color:#374dc7}nav{display:flex;gap:20px;flex-wrap:wrap}main{max-width:1180px;margin:28px auto;padding:0 20px}h1{font-size:28px}h2{font-size:20px}h3{font-size:16px}.card{background:white;padding:22px;border:1px solid #dce2eb;border-radius:10px;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.fields{display:flex;flex-wrap:wrap;align-items:end;gap:12px}label{display:block;font-weight:600;margin:8px 0 4px}input,select,textarea{font:inherit;padding:9px;border:1px solid #abb6c8;border-radius:5px;max-width:100%;background:white}input:not([type=checkbox]),select,textarea{width:100%}input[type=checkbox]{width:auto}button,.button{display:inline-block;background:#374dc7;color:white;border:0;border-radius:5px;padding:10px 15px;font:inherit;cursor:pointer;text-decoration:none}button.secondary{background:#475569}.danger{background:#9f2635}.muted{color:#64748b}.notice{background:#dff5e7;padding:14px;border-radius:6px}.alert{background:#ffe4e6;padding:14px;border-radius:6px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #e2e8f0}th{color:#64748b;font-size:13px}details{margin:12px 0}summary{cursor:pointer;color:#374dc7}.inline{display:inline-block;margin:4px}.money{font-variant-numeric:tabular-nums}.badge{font-size:12px;border:1px solid #cbd5e1;padding:3px 7px;border-radius:20px}small{display:block}.fields>div{flex:1;min-width:140px}.actions{display:flex;gap:8px;flex-wrap:wrap}select[multiple]{min-height:100px}.compact{max-width:220px}
+  </style>
+</head>
+<body>
+  <header><strong>Citapp</strong><nav aria-label="Operación"><%= link_to "Agenda", operations_root_path %><% if can?(:read, Sale) %><%= link_to "Ventas y cobros", operations_sales_path %><%= link_to "Catálogos y horarios", operations_catalogs_path %><% end %><%= link_to "Inicio", root_path %></nav><span class="muted"><%= current_user.full_name %></span></header>
+  <main>
+    <% if notice %><p class="notice" role="status"><%= notice %></p><% end %>
+    <% if alert %><p class="alert" role="alert"><%= alert %></p><% end %>
+    <%= yield %>
+  </main>
+</body>
+</html>

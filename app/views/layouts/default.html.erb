@@ -7,7 +7,7 @@
     <title><%= document_title %></title>
 
     <meta name='viewport' content='width=device-width, initial-scale=1' />
-    <link rel="icon" type="image/svg" href="/assets/favicon.png" />
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -118,12 +118,12 @@
 
             <div class="p-6 animate__animated" :class="[$store.app.animation]">
                        
-                 <%if notice%>
+                 <%if notice && !controller.is_a?(Operations::BaseController)%>
                  <div class="flex items-center p-3.5 rounded text-white bg-success">
                    <span class="ltr:pr-1 rtl:pl-1"><strong class="ltr:mr-1 rtl:ml-1"><%= notice %></strong></span>
                  </div>
                  <%end%>
-                 <%if alert%>
+                 <%if alert && !controller.is_a?(Operations::BaseController)%>
                  <div class="flex items-center p-3.5 rounded text-white bg-danger">
                    <span class="ltr:pr-1 rtl:pl-1"><strong class="ltr:mr-1 rtl:ml-1"><%= alert %></strong></span>
                  </div>

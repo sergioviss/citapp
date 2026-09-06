@@ -1,0 +1,55 @@
+<%= render 'operations/shared/assets' %>
+<script type="application/json" id="pos-data"><%= raw json_escape({ currency: @sale.currency, client: @sale.client&.as_json(only: [:id, :name, :phone, :email]), appointment_id: @sale.appointment_id, notes: @sale.notes, items: @sale.sale_items.map { |item| item.as_json(only: [:service_id, :appointment_service_id, :description, :quantity, :unit_price, :discount_amount, :tax_rate]) } }.to_json) %></script>
+<div class="ops" x-data="operationsPos">
+  <div class="ops-heading"><div><h1><%= @sale.persisted? ? "Editar venta ##{@sale.id}" : 'Nueva venta' %></h1><p>Selecciona un cliente y agrega los servicios que vas a vender.</p></div><%= link_to 'Volver a ventas', operations_sales_path, class: 'btn btn-outline-primary' %></div>
+  <form class="ops-pos" data-pos-form action="<%= @sale.persisted? ? operations_sale_path(@sale) : operations_sales_path %>" @submit.prevent="save($event)" method="post">
+    <input type="hidden" name="_method" value="<%= @sale.persisted? ? 'patch' : 'post' %>">
+    <div class="ops-pos-main">
+      <section class="panel">
+        <div class="ops-heading"><h2>Cliente</h2><div class="actions" x-show="!appointmentId"><button type="button" class="btn btn-sm" :class="!newClient ? 'btn-primary' : 'btn-outline-primary'" @click="newClient = false">Registrado</button><button type="button" class="btn btn-sm" :class="newClient ? 'btn-primary' : 'btn-outline-primary'" @click="newClient = true; clientResults = []">Cliente nuevo</button></div></div>
+        <div x-show="!newClient">
+          <label for="client-search">Buscar por nombre o teléfono</label>
+          <input id="client-search" type="search" placeholder="Escribe el nombre o número de teléfono" x-model="clientQuery" @input.debounce.250ms="searchClients()" :disabled="!!appointmentId" autocomplete="off">
+          <p class="muted" x-show="clientLoading" role="status">Buscando clientes…</p>
+          <div class="ops-results" x-show="clientResults.length"><template x-for="result in clientResults" :key="result.id"><button type="button" @click="chooseClient(result)"><strong x-text="result.name"></strong><span x-text="result.phone || 'Sin teléfono'"></span></button></template></div>
+          <p x-cloak x-show="clientSearched && !clientLoading && !clientResults.length && !client" class="muted">No se encontraron clientes. Puedes seleccionar «Cliente nuevo».</p>
+          <div class="ops-selected" x-cloak x-show="client"><span><strong x-text="client?.name"></strong><span class="muted" x-text="client?.phone ? ' · ' + client.phone : ''"></span></span><button type="button" class="text-danger" x-show="!appointmentId" @click="client = null; clientQuery = ''" aria-label="Quitar cliente">Cambiar</button></div>
+        </div>
+        <div x-cloak x-show="newClient">
+          <label for="new-client-name">Nombre del cliente</label><input id="new-client-name" x-model="customer.name" :required="newClient" :disabled="!newClient" maxlength="200">
+          <div class="fields"><div><label for="new-client-phone">Teléfono</label><input type="tel" id="new-client-phone" x-model="customer.phone" :disabled="!newClient"></div><div><label for="new-client-email">Email (opcional)</label><input type="email" id="new-client-email" x-model="customer.email" :disabled="!newClient"></div></div>
+          <p class="muted">Se registrará al guardar la venta.</p>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Servicios</h2><label for="service-search">Buscar en el catálogo</label>
+        <input type="search" id="service-search" placeholder="Escribe el nombre de un servicio" x-model="serviceQuery" @input.debounce.250ms="searchServices()" autocomplete="off">
+        <p class="muted" x-show="serviceLoading" role="status">Buscando servicios…</p>
+        <div class="ops-results ops-service-results"><template x-for="service in serviceResults" :key="service.id"><button type="button" @click="addService(service)"><span><strong x-text="service.name"></strong><small x-text="service.duration_minutes + ' min'"></small></span><span class="text-primary" x-text="money(service.price) + ' ＋'"></span></button></template></div>
+        <p class="muted" x-cloak x-show="!serviceLoading && !serviceResults.length">No se encontraron servicios activos.</p>
+      </section>
+      <section class="panel">
+        <div class="ops-heading"><h2>Servicios de la venta</h2><span class="badge badge-outline-primary" x-text="items.length + ' partidas'"></span></div>
+        <p class="ops-empty" x-show="!items.length">Busca un servicio y pulsa ＋ para agregarlo.</p>
+        <div class="table-responsive" x-show="items.length"><table class="table-hover ops-lines"><thead><tr><th>Servicio</th><th>Cantidad</th><th>Precio</th><th>Descuento</th><th>IVA %</th><th>Total</th><th></th></tr></thead><tbody>
+          <template x-for="(item, index) in items" :key="item.key"><tr>
+            <td><strong x-text="item.description"></strong></td>
+            <td><input type="number" min="1" step="1" required x-model="item.quantity" :aria-label="'Cantidad de ' + item.description"></td>
+            <td><input type="number" min="0" step="0.01" required x-model="item.unit_price" :aria-label="'Precio de ' + item.description"></td>
+            <td><input type="number" min="0" step="0.01" required x-model="item.discount_amount" :aria-label="'Descuento de ' + item.description"></td>
+            <td><input type="number" min="0" max="100" step="0.0001" required x-model="item.tax_percent" :aria-label="'Impuesto de ' + item.description"></td>
+            <td class="ops-money" x-text="money(lineTotal(item) / 100)"></td>
+            <td><button type="button" class="text-danger" @click="items.splice(index, 1)" :aria-label="'Quitar ' + item.description">✕</button></td>
+          </tr></template>
+        </tbody></table></div>
+      </section>
+    </div>
+    <aside class="panel ops-pos-summary">
+      <h2>Resumen de venta</h2><p class="muted">Borrador · <span x-text="currency"></span></p>
+      <dl class="ops-totals"><div><dt>Subtotal</dt><dd x-text="money(totals.subtotal / 100)"></dd></div><div><dt>Descuentos</dt><dd x-text="money(totals.discount / 100)"></dd></div><div><dt>Impuestos</dt><dd x-text="money(totals.tax / 100)"></dd></div><div class="ops-grand-total"><dt>Total</dt><dd x-text="money(totals.total / 100)"></dd></div></dl>
+      <label for="sale-notes">Notas</label><textarea id="sale-notes" rows="4" placeholder="Comentarios de la venta" x-model="notes"></textarea>
+      <p class="muted">Al guardar podrás publicar la venta y registrar sus cobros.</p>
+      <button type="submit" class="btn btn-primary w-full" :disabled="saving || !items.length || (!newClient && !client)"><span x-text="saving ? 'Guardando…' : 'Guardar venta'"></span></button>
+    </aside>
+  </form>
+</div>

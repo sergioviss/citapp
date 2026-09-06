@@ -445,6 +445,7 @@ DEPENDENCIES
   caxlsx_rails
   debug
   devise (~> 4.9, >= 4.9.4)
+  dotenv
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
@@ -468,7 +469,7 @@ DEPENDENCIES
   web-console
 
 RUBY VERSION
-   ruby 4.0.6p0
+  ruby 4.0.6p0
 
 BUNDLED WITH
-   4.0.20
+  4.0.16

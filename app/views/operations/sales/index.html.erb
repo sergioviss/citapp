@@ -1,0 +1,5 @@
+<%= render 'operations/shared/assets' %>
+<div class="ops">
+  <div class="ops-heading"><div><h1>Ventas</h1></div><%= link_to '＋ Nueva venta', new_operations_sale_path, class: 'btn btn-primary gap-2' %></div>
+  <%= render 'operations/shared/table', url: datatable_operations_sales_path(format: :json), headings: ['Folio', 'Servicios', 'Total', 'Empleado', 'Acciones'] %>
+</div>

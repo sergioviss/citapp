@@ -1,0 +1,105 @@
+<%= render 'operations/shared/assets' %>
+<% assigned = @employee.employee_services.pluck(:service_id)
+   editing = action_name == 'edit'
+   weekdays = [[7, 'Domingo'], [1, 'Lunes'], [2, 'Martes'], [3, 'Miércoles'], [4, 'Jueves'], [5, 'Viernes'], [6, 'Sábado']] %>
+<div class="ops">
+  <div class="ops-heading">
+    <div><h1><%= editing ? 'Editar empleado' : @employee.name %></h1></div>
+    <div class="actions">
+      <%= link_to 'Volver a empleados', operations_employees_path, class: 'btn btn-outline-primary' %>
+      <% if !editing && can?(:update, @employee) %><%= link_to 'Editar', edit_operations_employee_path(@employee), class: 'btn btn-primary' %><% end %>
+    </div>
+  </div>
+  <%= form_with model: @employee, url: operations_employee_path(@employee), class: 'ops-employee-form', html: { novalidate: !editing } do |f| %>
+    <section class="panel">
+      <div class="ops-employee-identity">
+        <div><%= f.label :name, 'Nombre' %><%= f.text_field :name, required: editing, disabled: !editing %></div>
+        <% if current_user.admin? %><div><%= f.label :user_id, 'Cuenta de acceso opcional' %><%= f.select :user_id, User.order(:full_name).map { |user| [user.full_name, user.id] }, { include_blank: 'Sin cuenta' }, disabled: !editing %></div><% end %>
+        <label class="ops-check"><%= f.check_box :active, disabled: !editing %> Activo</label>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Horario semanal</h2>
+      <div class="ops-hours-table<%= ' ops-hours-table--readonly' unless editing %>" role="table">
+        <div class="ops-hours-row ops-hours-head" role="row">
+          <span role="columnheader">Días</span>
+          <span role="columnheader">Hora de entrada</span>
+          <span role="columnheader">Hora de salida</span>
+          <% if editing %><span role="columnheader">Acciones</span><% end %>
+        </div>
+        <% weekdays.each do |weekday, name| %>
+          <% day_hours = @hours.select { |slot| slot.weekday == weekday }
+             enabled = day_hours.any?
+             starts_at = day_hours.min_by(&:starts_at_seconds)&.starts_at.to_s.first(5).presence || '09:00'
+             ends_at = day_hours.max_by(&:ends_at_seconds)&.ends_at.to_s.first(5).presence || '18:00'
+             ends_at = '23:59' if ends_at.start_with?('24:00') %>
+          <div class="ops-hours-row" role="row" x-data="<%= { enabled: enabled, starts_at: starts_at, ends_at: ends_at, weekday: weekday }.to_json %>" data-weekday="<%= weekday %>">
+            <strong role="cell"><%= name %></strong>
+            <div role="cell">
+              <% if editing %><input type="hidden" :name="'hours[' + weekday + '][enabled]'" :value="enabled ? 'true' : 'false'"><% end %>
+              <label class="ops-time-field">
+                <span class="ops-slot-label">Hora de entrada</span>
+                <input type="time" step="60" :id="'day-' + weekday + '-start'" <% if editing %>:name="'hours[' + weekday + '][starts_at]'" x-model="starts_at" :required="enabled" :disabled="!enabled"<% else %>value="<%= starts_at %>" disabled<% end %>>
+              </label>
+            </div>
+            <div role="cell">
+              <label class="ops-time-field">
+                <span class="ops-slot-label">Hora de salida</span>
+                <input type="time" step="60" :id="'day-' + weekday + '-end'" <% if editing %>:name="'hours[' + weekday + '][ends_at]'" x-model="ends_at" :required="enabled" :disabled="!enabled"<% else %>value="<%= ends_at %>" disabled<% end %>>
+              </label>
+            </div>
+            <% if editing %>
+              <div class="ops-day-actions" role="cell">
+                <button type="button" class="btn btn-sm" :class="enabled ? 'btn-outline-danger' : 'btn-outline-success'" @click="enabled = !enabled" x-text="enabled ? 'Deshabilitar' : 'Habilitar'"></button>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Ausencias</h2>
+      <% if @absences.any? %>
+        <ul class="ops-absence-list">
+          <% @absences.each do |absence| %>
+            <li><%= absence.starts_at.in_time_zone(@settings.time_zone).strftime('%d/%m/%Y %H:%M') %> — <%= absence.ends_at.in_time_zone(@settings.time_zone).strftime('%d/%m/%Y %H:%M') %><% if absence.reason.present? %> · <%= absence.reason %><% end %></li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="muted">No hay ausencias ni bloqueos registrados.</p>
+      <% end %>
+      <% if editing %>
+        <p class="muted">Para agregar una ausencia, completa el intervalo. Se guardará junto con el resto de cambios.</p>
+        <div class="fields">
+          <div><%= label_tag 'time_off_starts_at', 'Inicio de ausencia' %><%= datetime_local_field_tag 'time_off[starts_at]', nil, id: 'time_off_starts_at' %></div>
+          <div><%= label_tag 'time_off_ends_at', 'Fin de ausencia' %><%= datetime_local_field_tag 'time_off[ends_at]', nil, id: 'time_off_ends_at' %></div>
+          <div><%= label_tag 'time_off_reason', 'Motivo' %><%= text_field_tag 'time_off[reason]', nil, id: 'time_off_reason' %></div>
+        </div>
+      <% end %>
+    </section>
+    <section class="panel">
+      <h2>Servicios asignados</h2>
+      <% if editing %>
+        <p class="muted">Selecciona los servicios que puede realizar este empleado, agrupados por categoría.</p>
+        <%= hidden_field_tag 'service_ids[]', '' %>
+      <% end %>
+      <% @categories.each do |category| %>
+        <% next if !editing && category.services.none? { |service| assigned.include?(service.id) } %>
+        <details class="ops-category-accordion"<%= ' open' unless editing %>><summary><%= category.name %> <span class="muted">(<%= editing ? category.services.size : category.services.count { |service| assigned.include?(service.id) } %>)</span></summary><div class="ops-category-services">
+          <% category.services.sort_by(&:name).each do |service| %>
+            <% next if !editing && !assigned.include?(service.id) %>
+            <label class="ops-check"><%= check_box_tag 'service_ids[]', service.id, assigned.include?(service.id), id: "assigned_#{service.id}", disabled: !editing %><span><%= service.name %><%= ' (inactivo)' unless service.active? %></span></label>
+          <% end %>
+          <% if editing && category.services.empty? %><p class="muted">Esta categoría no tiene servicios.</p><% end %>
+        </div></details>
+      <% end %>
+    </section>
+    <div class="actions ops-employee-save">
+      <% if editing %>
+        <%= f.submit 'Guardar', class: 'btn btn-primary' %>
+      <% elsif can?(:update, @employee) %>
+        <%= link_to 'Editar', edit_operations_employee_path(@employee), class: 'btn btn-primary' %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -87,13 +87,15 @@ module DatatableSearchable
       if params[:order].present?
         order_params = params[:order].values.first
         column_index = order_params[:column].to_i
-        direction = order_params[:dir]
+        direction = order_params[:dir].to_s.downcase
 
         order_column = datatable_config[:sortable][column_index]
-        return query.order(Arel.sql("#{order_column} #{direction}"))
+        if column_index >= 0 && order_column.present? && %w[asc desc].include?(direction)
+          return query.order(order_column => direction)
+        end
       end
 
-      query.order(Arel.sql("#{table_name}.created_at DESC"))
+      query.order(created_at: :desc)
     end
 
     def format_data(records)

@@ -1,0 +1,16 @@
+<%= render 'operations/shared/assets' %>
+<div class="ops">
+  <div class="ops-heading"><div><h1>Configuración del negocio</h1><p>Información general, moneda y zona horaria.</p></div></div>
+  <section class="panel">
+    <%= form_with model: @settings, url: operations_settings_path, method: :patch do |f| %>
+      <fieldset <%= 'disabled' unless can?(:update, @settings) %>>
+        <%= f.label :name, 'Nombre del negocio' %><%= f.text_field :name, required: true %>
+        <div class="fields"><div><%= f.label :time_zone, 'Zona horaria IANA' %><%= f.text_field :time_zone, required: true, list: 'iana-zones' %></div>
+          <div><%= f.label :currency, 'Moneda ISO' %><%= f.text_field :currency, required: true, pattern: '[A-Z]{3}', maxlength: 3 %></div></div>
+        <datalist id="iana-zones"><% TZInfo::Timezone.all_identifiers.each do |zone| %><option value="<%= zone %>"><% end %></datalist>
+        <p class="muted">La zona horaria y moneda solo pueden cambiarse antes de registrar horarios, servicios u operaciones.</p>
+        <% if can?(:update, @settings) %><%= f.submit 'Guardar configuración', class: 'btn btn-primary' %><% end %>
+      </fieldset>
+    <% end %>
+  </section>
+</div>

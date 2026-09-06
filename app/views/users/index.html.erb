@@ -1,7 +1,9 @@
 <%= render 'shared/admin_datatable_assets' %>
+<% content_for :title, 'Usuarios' %>
 
 <div x-data="usersList">
-  <div class="flex items-center justify-end mb-4">
+  <div class="flex items-center justify-between gap-4 mb-5 flex-wrap">
+    <h1 class="text-2xl font-bold m-0">Usuarios</h1>
     <button type="button" class="btn btn-primary gap-2" @click="openCreateModal()">
       <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
@@ -84,14 +86,14 @@
             url: '<%= datatable_users_path %>',
             data: (d) => {
               d.filter_full_name = $('#filter_full_name').val();
-              d.filter_rol_name = $('#filter_rol_name').val();
+              d.filter_role_name = $('#filter_role_name').val();
               d.filter_email = $('#filter_email').val();
             }
           },
           columns: [
             { data: 'full_name', width: '22%' },
             { data: 'email', width: '38%' },
-            { data: 'rol_name', width: '20%' },
+            { data: 'role_name', width: '20%' },
             { data: 'actions', width: '20%', orderable: false, searchable: false }
           ],
           order: [],
