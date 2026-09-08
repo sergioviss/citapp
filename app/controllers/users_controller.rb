@@ -8,10 +8,9 @@ class UsersController < ApplicationController
 
   # GET /users
   def index
-    @page_title = 'Usuarios'
     @users = User.all
     @user = User.new
-    @roles = Rol.all
+    @roles = Role.all
     @mode = 'new'
     render layout: "default"
   end
@@ -22,7 +21,7 @@ class UsersController < ApplicationController
   # GET /users/1
   def show
     @title = "Detalles"
-    @roles = Rol.all
+    @roles = Role.all
     respond_to do |format|
       format.html { render layout: "default", template: 'users/new' }
       format.json do
@@ -38,7 +37,7 @@ class UsersController < ApplicationController
   # GET /users/new
   def new
     @user = User.new
-    @roles = Rol.all
+    @roles = Role.all
     @title = "Registrar"
     @mode = 'new'
     render layout: "default", :template => 'users/new'
@@ -46,7 +45,7 @@ class UsersController < ApplicationController
 
   # GET /users/1/edit
   def edit
-    @roles = Rol.all
+    @roles = Role.all
     @title = "Editar"
     respond_to do |format|
       format.html { render layout: "default", template: 'users/new' }
@@ -63,7 +62,7 @@ class UsersController < ApplicationController
   # POST /users
   def create
     @user = User.new(user_params)
-    @roles = Rol.all
+    @roles = Role.all
     @title = "Registrar"
     if @user.save
       respond_to do |format|
@@ -80,7 +79,7 @@ class UsersController < ApplicationController
 
   # PATCH/PUT /users/1
   def update
-    @roles = Rol.all
+    @roles = Role.all
     @title = "Editar"
     if @user.update(user_params)
       respond_to do |format|
@@ -97,13 +96,10 @@ class UsersController < ApplicationController
 
   # DELETE /users/1
   def destroy
-    if @user.admin? && User.joins(:rol).where(rols: { name: 'Administrador' }).count <= 1
-      redirect_to users_url, alert: 'No se puede eliminar el último administrador.'
-      return
-    end
-
-    @user.destroy
-    redirect_to users_url, notice: 'Usuario eliminado correctamente.', status: :see_other
+    @user.deactivate!
+    redirect_to users_url, notice: "Usuario desactivado correctamente.", status: :see_other
+  rescue ActiveRecord::RecordInvalid
+    redirect_to users_url, alert: User::LAST_ACTIVE_ADMIN_MESSAGE
   end
 
   def users_profile
@@ -129,7 +125,7 @@ class UsersController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def user_params
-    params.require(:user).permit(:email, :password, :password_confirmation, :full_name, :rol_id)
+    params.require(:user).permit(:email, :password, :password_confirmation, :full_name, :role_id, :active)
   end
 
 end

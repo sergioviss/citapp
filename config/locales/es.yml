@@ -10,3 +10,32 @@ es:
         current_password: "Contraseña actual"
         remember_me: "Recuérdame"
         full_name: "Nombre completo"
+        role: "Rol"
+        active: "Activo"
+      role:
+        code: "Código"
+        name: "Nombre"
+      client:
+        name: "Nombre"
+        phone: "Teléfono"
+        email: "Correo electrónico"
+      employee:
+        name: "Nombre"
+        active: "Activo"
+      service:
+        name: "Nombre"
+        duration_minutes: "Duración (minutos)"
+        price: "Precio"
+        active: "Activo"
+      appointment:
+        starts_at: "Inicio"
+        ends_at: "Fin"
+        status: "Estado"
+        currency: "Moneda"
+      sale:
+        status: "Estado"
+        total: "Total"
+      payment:
+        amount: "Importe"
+        method: "Método"
+        kind: "Tipo"

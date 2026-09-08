@@ -1,0 +1,33 @@
+<div x-data="appointmentEditor" @appointment-open.window="open($event.detail)">
+  <dialog id="booking-dialog" class="ops-dialog panel" aria-labelledby="booking-title">
+    <div class="ops-heading"><h2 id="booking-title" x-text="recordId ? (readOnly ? 'Detalle de cita' : 'Editar cita') : 'Nueva cita'"></h2><button type="button" data-close-dialog aria-label="Cerrar">✕</button></div>
+    <%= form_with scope: :appointment, url: operations_appointments_path, data: { appointment_editor: true }, html: { '@submit.prevent' => 'save($event)' } do |f| %>
+      <fieldset :disabled="readOnly || saving">
+        <div class="ops-heading"><h3>Cliente</h3><div class="actions" x-show="!saleId && !readOnly"><button type="button" class="btn btn-sm" :class="!newClient ? 'btn-primary' : 'btn-outline-primary'" @click="newClient = false">Registrado</button><button type="button" class="btn btn-sm" :class="newClient ? 'btn-primary' : 'btn-outline-primary'" @click="newClient = true; clientResults = []">Cliente nuevo</button></div></div>
+        <div x-show="!newClient">
+          <label for="booking-client-search">Buscar cliente por nombre o teléfono</label>
+          <input id="booking-client-search" type="search" x-model="clientQuery" @input.debounce.250ms="searchClients()" :disabled="!!saleId || readOnly" placeholder="Nombre o teléfono" autocomplete="off">
+          <p x-show="clientLoading" role="status">Buscando…</p>
+          <div class="ops-results"><template x-for="result in clientResults" :key="result.id"><button type="button" @click="chooseClient(result)"><strong x-text="result.name"></strong><span x-text="result.phone"></span></button></template></div>
+          <p class="muted" x-show="clientSearched && !clientLoading && !clientResults.length && !client">No se encontraron clientes. Puedes registrar un cliente nuevo.</p>
+          <div class="ops-selected" x-show="client"><strong x-text="client?.name"></strong><span x-text="client?.phone"></span></div>
+        </div>
+        <div x-cloak x-show="newClient"><label for="booking-new-name">Nombre del cliente nuevo</label><input id="booking-new-name" x-model="customer.name" :required="newClient" :disabled="!newClient"><label for="booking-new-phone">Teléfono del cliente nuevo</label><input id="booking-new-phone" type="tel" x-model="customer.phone" :required="newClient" :disabled="!newClient"><p class="muted">El cliente se registrará al guardar la cita.</p></div>
+        <label for="appointment_employee_id">Empleado</label><select id="appointment_employee_id" x-model="employeeId" @change="employeeChanged()" required><option value="">Selecciona un empleado</option><template x-for="employee in employees" :key="employee.id"><option :value="employee.id" x-text="employee.name"></option></template></select>
+        <div class="ops-services-picker" @click.outside="servicesOpen = false" @keydown.escape.stop="servicesOpen = false">
+          <label id="booking-services-label">Servicios</label><button type="button" class="ops-services-toggle" @click="servicesOpen = !servicesOpen" :disabled="!!saleId" :aria-expanded="servicesOpen" aria-controls="booking-services-options" aria-labelledby="booking-services-label"><span x-text="selectedIds.length ? selectedIds.length + ' servicios seleccionados' : 'Seleccionar servicios'"></span><span aria-hidden="true">⌄</span></button>
+          <div id="booking-services-options" class="ops-services-menu" x-cloak x-show="servicesOpen">
+            <label for="booking-service-search" class="sr-only">Buscar servicio</label><input id="booking-service-search" type="search" x-model="serviceQuery" placeholder="Buscar servicio" autocomplete="off">
+            <div class="ops-service-options"><template x-for="service in filteredServices" :key="service.id"><label class="ops-check"><input type="checkbox" :value="String(service.id)" x-model="selectedIds" @change="calculateEnd()"><span><strong x-text="service.name"></strong><small x-text="service.duration_minutes + ' min · ' + money(service.price)"></small></span></label></template><p class="muted" x-show="!filteredServices.length">No hay servicios habilitados que coincidan.</p></div>
+          </div>
+        </div>
+        <p class="muted" x-text="selectedServices.map(service => service.name).join(', ')"></p>
+        <div class="fields"><div><label for="appointment_starts_at">Inicio</label><input type="datetime-local" id="appointment_starts_at" x-model="startsAt" @input="calculateEnd()" required></div><div><label for="appointment_ends_at">Finalización</label><input type="datetime-local" id="appointment_ends_at" :value="endsAt" readonly required></div></div>
+        <p class="muted" x-text="duration + ' minutos en total'"></p>
+        <label for="appointment_notes">Notas</label><textarea id="appointment_notes" rows="2" x-model="notes"></textarea>
+      </fieldset>
+      <p class="muted" x-show="saleId">Esta cita ya tiene una venta; su cliente y servicios se conservan.</p>
+      <div class="actions"><button type="button" class="btn btn-outline-primary" data-close-dialog>Cerrar</button><button type="submit" class="btn btn-primary" x-show="!readOnly" :disabled="saving || !selectedIds.length || (!newClient && !client)"><span x-text="saving ? 'Guardando…' : (recordId ? 'Guardar cambios' : 'Reservar cita')"></span></button></div>
+    <% end %>
+  </dialog>
+</div>

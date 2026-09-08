@@ -1,0 +1,97 @@
+<%= render 'operations/shared/assets' %>
+<script type="application/json" id="pos-data"><%= raw json_escape({ currency: @sale.currency, base_currency: BusinessSetting.current!.currency, exchange_rate: BusinessSetting.current!.usd_exchange_rate, discount_percent: @sale.discount_percent, checkout_key: SecureRandom.uuid, client: @sale.client&.as_json(only: [:id, :name, :phone, :email]), appointment_id: @sale.appointment_id, notes: @sale.notes, employees: @employees.map { |employee| { id: employee.id, name: employee.name } }, items: @sale.sale_items.map { |item| item.as_json(only: [:service_id, :appointment_service_id, :employee_id, :description, :quantity, :unit_price, :discount_amount]) } }.to_json) %></script>
+<div class="ops" x-data="operationsPos">
+  <div class="ops-heading"><div><h1><%= @sale.persisted? ? "Editar venta ##{@sale.id}" : 'Nueva venta' %></h1><p>Selecciona un cliente y agrega los servicios que vas a vender.</p></div><%= link_to 'Volver a ventas', operations_sales_path, class: 'btn btn-outline-primary' %></div>
+  <form class="ops-pos" data-pos-form action="<%= @sale.persisted? ? operations_sale_path(@sale) : operations_sales_path %>" @submit.prevent="save($event)" method="post">
+    <input type="hidden" name="_method" value="<%= @sale.persisted? ? 'patch' : 'post' %>">
+    <div class="ops-pos-main">
+      <section class="panel">
+        <div class="ops-heading"><h2>Cliente</h2><div class="actions" x-show="!appointmentId"><button type="button" class="btn btn-sm" :class="!newClient ? 'btn-primary' : 'btn-outline-primary'" @click="newClient = false">Registrado</button><button type="button" class="btn btn-sm" :class="newClient ? 'btn-primary' : 'btn-outline-primary'" @click="newClient = true; clientResults = []">Cliente nuevo</button></div></div>
+        <div x-show="!newClient">
+          <label for="client-search">Buscar por nombre o teléfono</label>
+          <input id="client-search" type="search" placeholder="Escribe el nombre o número de teléfono" x-model="clientQuery" @input.debounce.250ms="searchClients()" :disabled="!!appointmentId" autocomplete="off">
+          <p class="muted" x-show="clientLoading" role="status">Buscando clientes…</p>
+          <div class="ops-results" x-show="clientResults.length"><template x-for="result in clientResults" :key="result.id"><button type="button" @click="chooseClient(result)"><strong x-text="result.name"></strong><span x-text="result.phone || 'Sin teléfono'"></span></button></template></div>
+          <p x-cloak x-show="clientSearched && !clientLoading && !clientResults.length && !client" class="muted">No se encontraron clientes. Puedes seleccionar «Cliente nuevo».</p>
+          <div class="ops-selected" x-cloak x-show="client"><span><strong x-text="client?.name"></strong><span class="muted" x-text="client?.phone ? ' · ' + client.phone : ''"></span></span><button type="button" class="text-danger" x-show="!appointmentId" @click="client = null; clientQuery = ''" aria-label="Quitar cliente">Cambiar</button></div>
+        </div>
+        <div x-cloak x-show="newClient">
+          <label for="new-client-name">Nombre del cliente</label><input id="new-client-name" x-model="customer.name" :required="newClient" :disabled="!newClient" maxlength="200">
+          <div class="fields"><div><label for="new-client-phone">Teléfono</label><input type="tel" id="new-client-phone" x-model="customer.phone" :disabled="!newClient"></div><div><label for="new-client-email">Email (opcional)</label><input type="email" id="new-client-email" x-model="customer.email" :disabled="!newClient"></div></div>
+          <p class="muted">Se registrará al guardar la venta.</p>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="ops-heading"><h2>Servicios de la venta</h2><span class="badge badge-outline-primary" x-text="items.length + ' partidas'"></span></div>
+        <div class="ops-sale-service-picker">
+          <label class="ops-slot-label" for="sale-service-picker">Agregar servicio</label>
+          <select id="sale-service-picker"><option></option></select>
+        </div>
+        <p class="ops-empty" x-show="!items.length">Busca un servicio y selecciónalo para agregarlo.</p>
+        <div class="table-responsive" x-show="items.length"><table class="table-hover ops-lines"><thead><tr><th>Servicio</th><th>Atendió</th><th>Cantidad</th><th>Precio</th><th>Total</th><th></th></tr></thead><tbody>
+          <template x-for="(item, index) in items" :key="item.key"><tr>
+            <td><strong x-text="item.description"></strong></td>
+            <td><select x-model="item.employee_id" :aria-label="'Empleado que atendió ' + item.description"><option value="">Sin asignar</option><template x-for="employee in employeesFor(item)" :key="employee.id"><option :value="String(employee.id)" x-text="employee.name"></option></template></select></td>
+            <td><input type="number" min="1" step="1" required x-model="item.quantity" :aria-label="'Cantidad de ' + item.description"></td>
+            <td class="ops-money" x-text="money(Number(item.unit_price))"></td>
+            <td class="ops-money" x-text="money(lineTotal(item) / 100)"></td>
+            <td><button type="button" class="text-danger" @click="items.splice(index, 1)" :aria-label="'Quitar ' + item.description">✕</button></td>
+          </tr></template>
+        </tbody></table></div>
+      </section>
+    </div>
+    <aside class="panel ops-pos-summary">
+      <h2>Resumen de venta</h2>
+      <div class="ops-summary-row">
+        <span class="ops-summary-label">Cajero</span>
+        <strong class="ops-summary-value"><%= current_user.full_name %></strong>
+      </div>
+      <div class="ops-summary-row">
+        <label for="sale-currency">Tipo de moneda</label>
+        <select id="sale-currency" :value="currency" @change="changeCurrency($event.target.value)"><option value="MXN">Pesos (MXN)</option><option value="USD">Dólares (USD)</option></select>
+      </div>
+      <p class="muted ops-summary-hint" x-show="exchangeRate" x-text="'Tipo de cambio: 1 USD = ' + exchangeRate + ' MXN'"></p>
+      <p class="muted ops-summary-hint" x-show="!exchangeRate">Configura el tipo de cambio para convertir entre pesos y dólares.</p>
+      <div class="ops-summary-row">
+        <label for="sale-discount">Descuento (%)</label>
+        <input id="sale-discount" type="number" min="0" max="100" step="0.01" x-model="discountPercent">
+      </div>
+      <dl class="ops-totals"><div><dt>Subtotal</dt><dd x-text="money(totals.subtotal / 100)"></dd></div><div><dt>Descuento</dt><dd x-text="money(totals.discount / 100)"></dd></div><div class="ops-grand-total"><dt>Total</dt><dd x-text="money(totals.total / 100)"></dd></div></dl>
+      <section class="ops-checkout-payments" aria-label="Pagos de la venta">
+        <template x-for="(payment, index) in payments" :key="payment.key">
+          <div class="ops-checkout-payment">
+            <div class="ops-checkout-payment-head" x-show="payments.length > 1">
+              <strong x-text="'Pago ' + (index + 1)"></strong>
+              <button type="button" class="text-danger" x-show="index > 0" @click="payments.splice(index, 1)">Quitar</button>
+            </div>
+            <div class="ops-checkout-payment-fields">
+              <div>
+                <label class="ops-slot-label" :for="'payment-method-' + payment.key">Método de pago</label>
+                <select :id="'payment-method-' + payment.key" x-model="payment.method">
+                  <option value="cash" :disabled="payments.some(other => other.key !== payment.key && other.method === 'cash')">Efectivo</option>
+                  <option value="card" :disabled="payments.some(other => other.key !== payment.key && other.method === 'card')">Tarjeta</option>
+                  <option value="transfer" :disabled="payments.some(other => other.key !== payment.key && other.method === 'transfer')">Transferencia</option>
+                </select>
+              </div>
+              <div>
+                <label class="ops-slot-label" :for="'payment-amount-' + payment.key" x-text="'Monto pagado (' + currency + ')' "></label>
+                <input :id="'payment-amount-' + payment.key" type="text" inputmode="decimal" autocomplete="off" required :value="formatMoneyInput(payment.amount)" @input="setPaymentAmount(payment, $event)" :aria-label="'Monto pagado (' + currency + ')'">
+              </div>
+            </div>
+          </div>
+        </template>
+        <button type="button" class="btn btn-primary w-full ops-summary-action" x-show="payments.length < 2" @click="addPayment()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Agregar otro método de pago
+        </button>
+      </section>
+      <dl class="ops-totals" aria-live="polite"><div><dt>Total pagado</dt><dd x-text="money(totalPaid / 100)"></dd></div><div class="ops-grand-total"><dt>Cambio</dt><dd x-text="money(change / 100)"></dd></div></dl>
+      <p class="text-danger" x-show="paymentError" x-text="paymentError" role="status"></p>
+      <div class="ops-summary-row ops-summary-row--notes">
+        <label for="sale-notes">Notas</label>
+        <textarea id="sale-notes" rows="3" placeholder="Comentarios de la venta" x-model="notes"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary w-full" :disabled="saving || !items.length || (!newClient && !client) || !!paymentError"><span x-text="saving ? 'Guardando…' : 'Guardar venta'"></span></button>
+    </aside>
+  </form>
+</div>

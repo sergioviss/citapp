@@ -1,0 +1,27 @@
+admin:
+  full_name: Admin User
+  email: admin@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "Password1!") %>
+  role: admin
+  active: true
+
+receptionist:
+  full_name: Reception User
+  email: reception@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "Password1!") %>
+  role: receptionist
+  active: true
+
+employee:
+  full_name: Employee User
+  email: employee@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "Password1!") %>
+  role: employee
+  active: true
+
+inactive:
+  full_name: Inactive User
+  email: inactive@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "Password1!") %>
+  role: receptionist
+  active: false

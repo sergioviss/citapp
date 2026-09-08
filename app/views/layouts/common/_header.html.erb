@@ -20,6 +20,7 @@
                     </svg>
                 </a>
             </div>
+            <%= link_to "Calendario de citas", operations_root_path, class: "btn btn-outline-primary ltr:mr-4 rtl:ml-4" %>
             <% if @page_title.present? %>
             <h1 class="font-semibold text-xl text-[#3b3f5c] dark:text-white-light ltr:mr-4 rtl:ml-4 truncate min-w-0">
                 <%= @page_title %>
@@ -84,7 +85,7 @@
                                 <div class="ltr:pl-4 rtl:pr-4 truncate">
                                     <h4 class="text-base"><%= current_user.full_name %>
                                     </h4>
-                                    <a class="text-black/60  hover:text-primary dark:text-dark-light/60 dark:hover:text-white" href="javascript:;"><%= current_user.rol_name %></a>
+                                    <a class="text-black/60  hover:text-primary dark:text-dark-light/60 dark:hover:text-white" href="javascript:;"><%= current_user.role_name %></a>
                                 </div>
                             </div>
                         </li>

@@ -1,0 +1,12 @@
+<%= render 'shared/admin_datatable_assets' %>
+<div class="panel px-4 border-[#e0e6ed] dark:border-[#1b2e4b]">
+  <div class="datatable-toolbar flex flex-wrap items-center justify-end gap-4 mb-4">
+    <%= render_datatable_search_and_export %>
+  </div>
+  <div class="invoice-table table-responsive">
+    <table id="operationsTable" class="table-hover w-full" data-ops-table="<%= url %>">
+      <thead><tr><% headings.each do |heading| %><th class="!px-4 !py-2"><%= heading %></th><% end %></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>

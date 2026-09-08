@@ -12,6 +12,11 @@ module TemplateWebV8
     config.load_defaults 8.1
     config.i18n.default_locale = :es
     config.i18n.fallbacks = [:en]
+    config.active_record.schema_format = :sql
+
+    ActiveSupport.on_load(:active_record_postgresqladapter) do
+      self.datetime_type = :timestamptz
+    end
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.

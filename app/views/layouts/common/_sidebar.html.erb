@@ -19,20 +19,32 @@
                 </a>
             </div>
             <ul class="perfect-scrollbar relative font-semibold space-y-0.5 h-[calc(100vh-80px)] overflow-y-auto overflow-x-hidden  p-4 py-0">
-                <h2 class="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
-                    <span>Catálogos</span>
-                </h2>
-                <li class="nav-item">
-                    <a href="/users" class="group">
-                        <div class="flex items-center">
-                            <svg class="group-hover:!text-primary shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="6" r="4" fill="currentColor" />
-                                <path opacity="0.5" d="M4 18.5C4 15.4624 7.13401 13 11 13H13C16.866 13 20 15.4624 20 18.5C20 19.8807 18.8807 21 17.5 21H6.5C5.11929 21 4 19.8807 4 18.5Z" fill="currentColor" />
-                            </svg>
-                            <span class="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">Usuarios</span>
-                        </div>
-                    </a>
-                </li>
+                <% [
+                  ['Operación', [
+                    ['Agenda', operations_root_path, can?(:read, Appointment), :agenda],
+                    ['Ventas', operations_sales_path, can?(:read, Sale), :ventas]
+                  ]],
+                  ['Catálogos', [
+                    ['Usuarios', users_path, can?(:read, User), :usuarios],
+                    ['Empleados', operations_employees_path, can?(:read, Employee), :empleados],
+                    ['Servicios', operations_services_path, can?(:read, Service), :servicios],
+                    ['Clientes', operations_clients_path, can?(:read, Client), :clientes]
+                  ]],
+                  ['Administración', [
+                    ['Configuración', operations_settings_path, can?(:read, BusinessSetting), :configuracion]
+                  ]]
+                ].each do |heading, links| %>
+                  <% if links.any? { |_, _, visible, _| visible } %>
+                    <li class="py-3 px-7 uppercase font-extrabold bg-white-light/30 dark:bg-dark -mx-4 mb-1"><%= heading %></li>
+                    <% links.each do |label, path, visible, icon| %>
+                      <% next unless visible %>
+                      <% active = request.path == path || (path == operations_sales_path && request.path == root_path) || (path != operations_root_path && request.path.start_with?("#{path}/")) %>
+                      <li class="nav-item"><%= link_to path, class: "group #{'active' if active}", aria: { current: active ? 'page' : nil } do %>
+                        <span class="flex items-center gap-3"><%= sidebar_nav_icon(icon) %><span><%= label %></span></span>
+                      <% end %></li>
+                    <% end %>
+                  <% end %>
+                <% end %>
             </ul>
         </div>
     </nav>

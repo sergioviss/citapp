@@ -1,0 +1,6 @@
+<link rel="stylesheet" href="/operations-ui/operations.css">
+<link rel="stylesheet" href="/assets/css/sweetalert.css">
+<script src="/operations-ui/operations.js"></script>
+<% if notice || alert %>
+  <div hidden data-ops-flash="<%= (alert || notice) %>" data-icon="<%= alert ? 'error' : 'success' %>"></div>
+<% end %>

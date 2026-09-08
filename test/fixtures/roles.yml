@@ -1,0 +1,11 @@
+admin:
+  code: admin
+  name: Administrador
+
+receptionist:
+  code: receptionist
+  name: Recepcionista
+
+employee:
+  code: employee
+  name: Empleado

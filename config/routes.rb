@@ -1,4 +1,52 @@
 Rails.application.routes.draw do
+  concern :business_operations do
+    resources :clients, only: %i[index create update destroy] do
+      collection { get :datatable; get :lookup }
+    end
+    resources :services, only: %i[index create update destroy] do
+      collection { get :datatable; get :lookup }
+    end
+    resources :employees, only: %i[index create show edit update destroy] do
+      collection { get :datatable }
+      member do
+        put :assign_services
+        put :working_hours
+        patch :day_working_hours
+        post :time_off
+      end
+    end
+    resource :settings, only: %i[show update]
+    resources :appointments, only: :create do
+      member do
+        patch :reschedule
+        patch :change_status
+      end
+    end
+    resources :sales, only: %i[index new edit show create update destroy] do
+      collection { post :from_appointment; get :datatable }
+      member do
+        post :publish
+        post :cancel
+      end
+      resources :payments, only: :create do
+        collection do
+          post :refund
+          post :external
+        end
+      end
+    end
+  end
+
+  namespace :operations do
+    root "dashboard#index"
+    get "catalogs", to: "dashboard#catalogs"
+    concerns :business_operations
+  end
+  scope path: "api/v1", module: "operations", as: "api_v1", defaults: { format: :json } do
+    get "appointments", to: "dashboard#index"
+    concerns :business_operations
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   namespace :api do
@@ -11,7 +59,7 @@ Rails.application.routes.draw do
  
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   # Defines the root path route ("/")
-  root 'dashboard#index'
+  root "operations/sales#index"
 
   namespace :admin do
     resources :users, only: %i[edit update]
@@ -47,12 +95,12 @@ Rails.application.routes.draw do
   get '/apps/todolist', to: 'apps#todolist'
   get '/apps/notes', to: 'apps#notes'
   get '/apps/contacts', to: 'apps#contacts'
-  get '/apps/calendar', to: 'apps#calendar'
+  get '/apps/calendar', to: redirect('/operations')
   get '/apps/scrumboard', to: 'apps#scrumboard'
-  get '/apps/invoice/add', to: 'apps#invoice_add'
-  get '/apps/invoice/edit', to: 'apps#invoice_edit'
-  get '/apps/invoice/list', to: 'apps#invoice_list'
-  get '/apps/invoice/preview', to: 'apps#invoice_preview'
+  get '/apps/invoice/add', to: redirect('/operations/sales/new')
+  get '/apps/invoice/edit', to: redirect('/operations/sales')
+  get '/apps/invoice/list', to: redirect('/operations/sales')
+  get '/apps/invoice/preview', to: redirect('/operations/sales')
   
   get '/components/tabs', to: 'ui#components_tabs'
   get '/components/accordions', to: 'ui#components_accordions'

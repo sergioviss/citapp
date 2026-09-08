@@ -1,0 +1,5 @@
+default:
+  id: 1
+  name: Citapp
+  time_zone: America/Mexico_City
+  currency: MXN

@@ -1,0 +1,26 @@
+<%= render 'operations/shared/assets' %>
+<link rel="stylesheet" href="/assets/css/fullcalendar.min.css">
+<script src="/assets/js/fullcalendar.min.js"></script>
+<script src="/operations-ui/appointments.js"></script>
+<script type="application/json" id="booking-services-data"><%= raw json_escape(@services.as_json(only: [:id, :name, :duration_minutes, :price]).to_json) %></script>
+<div class="ops">
+  <div class="ops-heading"><div><h1>Agenda de citas</h1></div>
+    <% if can?(:create, Appointment) %><button type="button" class="btn btn-primary" data-new-booking>＋ Nueva cita</button><% end %>
+  </div>
+  <section class="panel">
+    <div class="ops-heading ops-calendar-toolbar">
+      <div class="actions"><%= link_to '‹', operations_root_path(date: @date - 1), class: 'btn btn-outline-primary', aria: { label: 'Día anterior' } %><%= link_to 'Hoy', operations_root_path, class: 'btn btn-outline-primary' %><%= link_to '›', operations_root_path(date: @date + 1), class: 'btn btn-outline-primary', aria: { label: 'Día siguiente' } %></div>
+      <%= form_with url: operations_root_path, method: :get, class: 'actions' do |f| %><%= f.label :date, 'Fecha', class: 'sr-only' %><%= f.date_field :date, value: @date, required: true %><%= f.submit 'Ver día', class: 'btn btn-primary' %><% end %>
+      
+    </div>
+    <div class="ops-legend"><span><i class="ops-dot scheduled"></i>Programada</span><span><i class="ops-dot completed"></i>Terminada</span><span><i class="ops-dot cancelled"></i>Cancelada / ausente</span><span><i class="ops-dot blocked"></i>No disponible</span></div>
+    <% if @calendar_columns.empty? %><div class="ops-empty">No hay empleados disponibles para mostrar.<% if can?(:create, Employee) %> <%= link_to 'Registrar empleados y horarios', operations_employees_path, class: 'text-primary' %><% end %></div><% end %>
+    <div class="ops-calendar-scroll"><div class="ops-calendar-columns" id="employee-calendar" data-date="<%= @date %>" data-bookable="<%= can?(:create, Appointment) %>">
+      <% @calendar_columns.each do |column| %><section class="ops-calendar-column"><h2><%= column[:name] %></h2><div data-employee-calendar="<%= column[:id] %>"></div></section><% end %>
+    </div></div>
+    <p class="muted">Selecciona un intervalo disponible para reservar. Pulsa una cita para consultar sus datos.</p>
+  </section>
+  <script type="application/json" id="calendar-data"><%= raw json_escape(@calendar_columns.to_json) %></script>
+  <details class="panel ops-appointment-details" id="day-appointments"><summary>Detalle de citas del día (<%= @appointments.size %>)</summary><%= render 'appointments' %></details>
+  <%= render 'booking' %>
+</div>

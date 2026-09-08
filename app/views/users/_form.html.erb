@@ -49,7 +49,7 @@ end %>
     </div>
     <div class="<%= modal ? '' : 'md:col-span-2' %>">
       <label for="actionWeb">Rol:</label>
-      <%= form.collection_select :rol_id, roles, :id, :name, { prompt: 'Selecciona un rol' }, class: 'form-select flex-1', disabled: read_only, required: !read_only %>
+      <%= form.collection_select :role_id, roles, :id, :name, { prompt: 'Selecciona un rol' }, class: 'form-select flex-1', disabled: read_only, required: !read_only %>
     </div>
   </div>
 

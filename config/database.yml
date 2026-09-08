@@ -17,9 +17,10 @@ default: &default
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
-  host: localhost
-  username: postgres
-  password: "cuatro.cero"
+  host: <%= ENV.fetch("DB_HOST", "localhost").to_json %>
+  port: <%= ENV.fetch("DB_PORT", "5432") %>
+  username: <%= ENV.fetch("DB_USER", "postgres").to_json %>
+  password: <%= ENV["DB_PASSWORD"].to_json %>
 
 development:
   <<: *default

@@ -1,0 +1,7 @@
+<%= render 'operations/shared/assets' %>
+<div class="ops">
+  <div class="ops-heading"><div><h1>Catálogos y horarios</h1><p>Prepara los servicios y la disponibilidad de tu equipo.</p></div></div>
+  <div class="ops-cards"><% [['Clientes', operations_clients_path, 'Datos de contacto de tus clientes.'], ['Servicios', operations_services_path, 'Precios, duración y disponibilidad.'], ['Empleados', operations_employees_path, 'Servicios habilitados, jornadas y ausencias.'], ['Configuración', operations_settings_path, 'Nombre, zona horaria y moneda del negocio.']].each do |title, path, text| %>
+    <%= link_to path, class: 'panel' do %><h2 class="text-primary"><%= title %> →</h2><p><%= text %></p><% end %>
+  <% end %></div>
+</div>

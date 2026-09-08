@@ -33,6 +33,7 @@ gem "solid_cable"
 gem "mission_control-jobs" # <--- Dashboard para tus Jobs
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
+gem "dotenv", require: false
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "kamal", require: false

@@ -1,0 +1,31 @@
+<div class="card">
+  <% if @appointments.empty? %><p>No hay citas para este día.</p><% end %>
+  <% @appointments.each do |appointment| %>
+    <article id="appointment-<%= appointment.id %>" tabindex="-1">
+      <h2><%= appointment.starts_at.in_time_zone(@settings.time_zone).strftime("%H:%M") %>–<%= appointment.ends_at.in_time_zone(@settings.time_zone).strftime("%H:%M") %> · <%= appointment.client.name %></h2>
+      <p><%= appointment.employee.name %> · <span class="badge"><%= {"scheduled"=>"Programada", "completed"=>"Terminada", "cancelled"=>"Cancelada", "no_show"=>"Ausente"}[appointment.status] %></span></p>
+      <p><%= appointment.appointment_services.map(&:service_name).join(", ") %></p>
+      <% if appointment.notes.present? %><p><%= appointment.notes %></p><% end %>
+      <div class="actions">
+        <% if appointment.scheduled? %>
+          <% {"completed"=>[:complete,"Terminar"], "no_show"=>[:mark_no_show,"Marcar ausente"], "cancelled"=>[:update,"Cancelar"]}.each do |status, (action, label)| %>
+            <% if can?(action, appointment) %><%= button_to label, change_status_operations_appointment_path(appointment), method: :patch, params: {status: status} %><% end %>
+          <% end %>
+        <% end %>
+        <% if can?(:create, Sale) %>
+          <% if appointment.sale %><%= link_to "Ver venta", operations_sale_path(appointment.sale), class: "button" %><% else %><%= button_to "Preparar venta", from_appointment_operations_sales_path, params: {appointment_id: appointment.id} %><% end %>
+        <% end %>
+      </div>
+      <% if appointment.scheduled? && can?(:update, appointment) %>
+        <details><summary>Reprogramar</summary>
+          <%= form_with scope: :appointment, url: reschedule_operations_appointment_path(appointment), method: :patch, class: "fields" do |f| %>
+            <div><%= f.label :starts_at, "Nuevo inicio", for: "reschedule_#{appointment.id}" %><%= f.datetime_local_field :starts_at, id: "reschedule_#{appointment.id}", required: true %></div>
+            <div><%= f.label :employee_id, "Empleado", for: "employee_#{appointment.id}" %><%= f.select :employee_id, @employees.map { |e| [e.name,e.id] }, {selected: appointment.employee_id}, id: "employee_#{appointment.id}" %></div>
+            <%= f.submit "Guardar horario", class: "button" %>
+          <% end %>
+        </details>
+      <% end %>
+      <hr>
+    </article>
+  <% end %>
+</div>
